@@ -1,1 +1,6 @@
 python34/account_system/uid_db
+python34/account_system/acc_db
+python34/account_system/pwd_db
+python34/account_system/phone_db
+python34/account_system/email_db
+python34/account_system/user_data
