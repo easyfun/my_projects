@@ -1,7 +1,29 @@
 #!/usr/bin/env python3
 # -*- coding:utf-8 -*-
 
-#执行代码如下： cat redisProtocol | redis-cli –pipe
+#author:trxh
+#qq:1060887552
+#github:https://github.com/tianruoxuanhe
+#license:LGPL
+
+#import data into redis command: cat file|redis-cli –pipe
+#redis protocol file: 
+#		*<args><cr><lf>
+#		$<len><cr><lf>
+#		<arg0><cr><lf>
+#		<arg1><cr><lf>
+#		...
+#example:
+#		<argN><cr><lf>
+#		*3<cr><lf>
+#		$3<cr><lf>
+#		SET<cr><lf>
+#		$3<cr><lf>
+#		key<cr><lf>
+#		$5<cr><lf>
+#		value<cr><lf>
+
+#Generate 100*10000 records file losses a few of hours more than four hours.
 
 import sys
 import os
