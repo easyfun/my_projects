@@ -73,10 +73,40 @@ def SaveUidData(des_file, count):
 		if n > 0 and n != 10:
 			des_fobj.write(content)
 
+def Con10To62(number, bits):
+	result = []
+	n = 0
+	shan = number
+	while n < bits:
+		yu = shan %62
+		shan /= 62
+		result.append(yu)
+		n += 1
+	result.reverse()
+	return result
+
+def SaveAccDB(des_file, count):
+	n = 0
+	acc = ""
+	while n < count:
+		indexs = Con10To62(n, 6)
+		print(indexs)
+		acc = ""
+		acc += g_acc_chars[indexs[0]]
+		acc += g_acc_chars[indexs[1]]
+		acc += g_acc_chars[indexs[2]]
+		acc += g_acc_chars[indexs[3]]
+		acc += g_acc_chars[indexs[4]]
+		acc += g_acc_chars[indexs[5]]
+		print(acc)
+		n += 1
+
+
 if __name__ == "__main__":
 	cur_path = os.path.abspath('.')
 	save_file = os.path.join(cur_path, 'acc_db')
 	print(save_file)
 	uid_sum = 100 * 10000
-	SaveUidData(save_file, uid_sum)
-	print(len(g_acc_list))
+#	SaveUidData(save_file, uid_sum)
+#	print(len(g_acc_list))
+	SaveAccDB(save_file, 100)
