@@ -34,6 +34,13 @@ import random
 g_acc_chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 g_acc_chars_len = len(g_acc_chars)
 
+g_acc_count_map = ((3,40000),(4,100000),(5,100000),
+	(6,100000),(7,100000),(8,100000),(9,100000),
+	(10,100000),(11,100000),(12,100000),(13,60000))
+g_acc_count = 0
+g_acc_bits = 3
+g_acc_number = 0
+
 #pwd有效字符
 g_pwd_chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 g_pwd_chars_len = len(g_pwd_chars)
@@ -61,22 +68,43 @@ def Con10ToN(base, number, bits):
 	return result
 
 #生成账号
-"""
-36个有效字符
-3位 4w
-4位 10w
-5位 10w
-6位 10w
-7位 10w
-8位 10w
-9位 10w
-10位 10w
-11位 10w
-12位 10w
-13位 6w
-"""
-def GenAcc(n, bits):
-	indexs = Con10ToN(g_acc_chars_len, n, bits)
+#36个有效字符
+#3位 4w
+#4位 10w
+#5位 10w
+#6位 10w
+#7位 10w
+#8位 10w
+#9位 10w
+#10位 10w
+#11位 10w
+#12位 10w
+#13位 6w
+def GetAccBits():
+	global g_acc_count
+	global g_acc_count_map
+	global g_acc_number
+	global g_acc_bits
+
+	for acc_count in g_acc_count_map:
+		print(acc_count)
+		print(g_acc_bits)
+		if g_acc_bits == acc_count[0]:
+			if g_acc_count == acc_count[1]:
+				g_acc_bits += 1
+				g_acc_number = 0
+				g_acc_count = 0
+				return g_acc_bits
+	g_acc_count += 1
+	return g_acc_bits
+
+def GenAcc():
+	global g_acc_chars_len
+	global g_acc_number
+	
+	bits = GetAccBits()
+	indexs = Con10ToN(g_acc_chars_len, g_acc_number, bits)
+	g_acc_number += 1
 	acc = ""
 	for bit in indexs:
 		acc += g_acc_chars[bit]
@@ -197,4 +225,11 @@ if __name__ == "__main__":
 	save_file = os.path.join(cur_path, 'user_db')
 	print(save_file)
 	uid_sum = 10 #100 * 10000
-	SaveUidData(save_file, uid_sum)
+#	SaveUidData(save_file, uid_sum)
+	n = 0
+	print(g_acc_bits)
+
+	while n < 10:
+		GetAccBits()
+		acc = GenAcc()
+		print(acc)
