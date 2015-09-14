@@ -23,6 +23,8 @@
 #		$5<cr><lf>
 #		value<cr><lf>
 
+#Generate 100*10000 records file losses a few of hours more than four hours.
+
 import sys
 import os
 from os import path
@@ -79,28 +81,27 @@ def Con10To62(number, bits):
 	shan = number
 	while n < bits:
 		yu = shan %62
-		shan /= 62
+		shan //= 62
 		result.append(yu)
 		n += 1
 	result.reverse()
 	return result
 
+def GenAcc(n, bits):
+	indexs = Con10To62(n, bits)
+	acc = ""
+	for bit in indexs:
+		acc += g_acc_chars[bit]
+	return acc + "y999f"
+
 def SaveAccDB(des_file, count):
 	n = 0
 	acc = ""
 	while n < count:
-		indexs = Con10To62(n, 6)
-		print(indexs)
-		acc = ""
-		acc += g_acc_chars[indexs[0]]
-		acc += g_acc_chars[indexs[1]]
-		acc += g_acc_chars[indexs[2]]
-		acc += g_acc_chars[indexs[3]]
-		acc += g_acc_chars[indexs[4]]
-		acc += g_acc_chars[indexs[5]]
-		print(acc)
+		acc = GenAcc(n, 6)
+#		print(acc)
 		n += 1
-
+	print(n)
 
 if __name__ == "__main__":
 	cur_path = os.path.abspath('.')
@@ -109,4 +110,4 @@ if __name__ == "__main__":
 	uid_sum = 100 * 10000
 #	SaveUidData(save_file, uid_sum)
 #	print(len(g_acc_list))
-	SaveAccDB(save_file, 100)
+	SaveAccDB(save_file, uid_sum)

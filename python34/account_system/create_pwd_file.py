@@ -23,6 +23,8 @@
 #		$5<cr><lf>
 #		value<cr><lf>
 
+#Generate 100*10000 records file losses a few of hours more than four hours.
+
 import sys
 import os
 from os import path

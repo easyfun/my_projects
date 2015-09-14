@@ -30,6 +30,118 @@ import os
 from os import path
 import random
 
+#acc有效字符
+g_acc_chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+g_acc_chars_len = len(g_acc_chars)
+
+#pwd有效字符
+g_pwd_chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+g_pwd_chars_len = len(g_pwd_chars)
+
+#phone有效字符
+g_phone_chars = "0123456789"
+g_phone_chars_len = len(g_phone_chars)
+
+#email有效字符
+g_email_chars = "abcdefghijklmnopqrstuvwxyz0123456789"
+g_email_chars_len = len(g_email_chars)
+g_email_suf = ("@qq.com", "@163.com", "@gmail.com")
+g_email_suf_len = len(g_email_suf)
+
+def Con10ToN(base, number, bits):
+	result = []
+	n = 0
+	shan = number
+	while n < bits:
+		yu = shan % base
+		shan //= base
+		result.append(yu)
+		n += 1
+	result.reverse()
+	return result
+
+#生成账号
+"""
+36个有效字符
+3位 4w
+4位 10w
+5位 10w
+6位 10w
+7位 10w
+8位 10w
+9位 10w
+10位 10w
+11位 10w
+12位 10w
+13位 6w
+"""
+def GenAcc(n, bits):
+	indexs = Con10ToN(g_acc_chars_len, n, bits)
+	acc = ""
+	for bit in indexs:
+		acc += g_acc_chars[bit]
+	return acc + "y999f"
+
+#生成密码
+"""
+36个有效字符
+3位 4w
+4位 10w
+5位 10w
+6位 10w
+7位 10w
+8位 10w
+9位 10w
+10位 10w
+11位 10w
+12位 10w
+13位 6w
+"""
+def GenPwd(n, bits):
+	indexs = Con10ToN(g_pwd_chars_len, n, bits)
+	pwd = ""
+	for bit in indexs:
+		pwd += g_pwd_chars[bit]
+	return pwd
+
+#生成手机号
+"""
+10个有效字符
+11位 100w
+"""
+def GenTelephone(n, bits):
+	n += 999999999
+	indexs = Con10ToN(g_phone_chars_len, n, bits)
+	phone = ""
+	for bit in indexs:
+		phone += g_phone_chars[bit]
+	return phone
+
+#生成Email
+#xxxxx, xxxxx.xxxxx, xxxxx.xxxxx.xxxxx
+#@qq.com, @163.com, @gmail.com
+"""
+36个有效字符
+3位 4w
+4位 10w
+5位 10w
+6位 10w
+7位 10w
+8位 10w
+9位 10w
+10位 10w
+11位 10w
+12位 10w
+13位 6w
+"""
+def GenEmail(n):
+	email = ""
+	indexs = Con10ToN(g_email_chars_len, n, 5)
+	for bit in indexs:
+		email += g_email_chars[bit]
+	email += g_email_suf[n % g_email_suf_len]
+	return email
+
 def SaveUidData(des_file, count):
 	n = 0
 	uid = ""
@@ -41,8 +153,13 @@ def SaveUidData(des_file, count):
 		n = 999999999
 		count += n
 		while n < count:
+			n += 1
 			user_id = "%d"%(n)
 			uid = "uid.%d"%(n)
+			account = GenAcc(n, 6)
+			password = GenPwd(n, 10)
+			phone = GenTelephone(n, 11)
+			email = GenEmail(n)
 			user_info = "*10\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n$%d\r\n%s\r\n"%(
 				len("hmset"),"hmset",len(uid),uid,
 				len("acc"),"acc",len(account),account,
