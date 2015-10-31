@@ -7,9 +7,9 @@ from email.mime.text import MIMEText
 config_send_email=False
 
 mail_host="smtp.ym.163.com"  #设置服务器
-mail_user="service@365sji.com"    #用户名
-mail_pass="2oYxj27XSk"   #口令 
-mail_postfix="163.com"  #发件箱的后缀
+mail_user="test"    #用户名
+mail_pass="test"   #口令 
+mail_postfix="qq.com"  #发件箱的后缀
 
 def send_mail(to_list,sub,content):  
     #me="hello"+"<"+mail_user+"@"+mail_postfix+">"
