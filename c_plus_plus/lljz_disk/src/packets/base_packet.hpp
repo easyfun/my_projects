@@ -14,8 +14,8 @@
  *     - initial release
  *
  */
-#ifndef TAIR_PACKETS_BASE_H
-#define TAIR_PACKETS_BASE_H
+#ifndef LLJZ_DISK_PACKETS_BASE_H
+#define LLJZ_DISK_PACKETS_BASE_H
 #include <string>
 #include <map>
 #include <set>
@@ -30,6 +30,13 @@ using namespace std;
 namespace lljz {
 namespace disk {
 
+#define PACKET_IN_PACKET_QUEUE_THREAD_MAX_TIME 180000000
+#define PACKET_WAIT_FOR_SERVER_MAX_TIME 180000000
+
+//Packet type
+#define REQUEST_PACKET 0
+#define RESPONSE_PACKET 1
+
 //config_server-获取服务列表
 #define CONFIG_SERVER_GET_SERVICE_LIST_REQ   1
 #define CONFIG_SERVER_GET_SERVICE_LIST_RESP  2
@@ -39,88 +46,54 @@ namespace disk {
       DIRECTION_SEND
    };
 
-   enum {
-      TAIR_STAT_TOTAL = 1,
-      TAIR_STAT_SLAB = 2,
-      TAIR_STAT_HASH = 3,
-      TAIR_STAT_AREA = 4,
-      TAIR_STAT_GET_MAXAREA = 5,
-      TAIR_STAT_ONEHOST = 256
-   };
-
    class BasePacket : public tbnet::Packet {
    public:
-      BasePacket()
-      {
-         connection = NULL;
-         direction = DIRECTION_SEND;
-         no_free = false;
-         server_flag = 0;
-         request_time = 0;
-         fixed_size = 0;
+      BasePacket() {
+         connection_ = NULL;
+         direction_ = DIRECTION_SEND;
+         recv_time_ = 0;
       }
 
-      virtual size_t size()
-      {
-        return 0;
-      }
-
-      virtual uint16_t ns()
-      {
-        return 0;
-      }
-
-      virtual ~BasePacket()
-      {
+      virtual ~BasePacket() {
       }
 
       // Connection
-      tbnet::Connection *get_connection()
-      {
-         return connection;
+      tbnet::Connection* get_gonnection() {
+         return connection_;
       }
 
       // connection
-      void set_connection(tbnet::Connection *connection)
-      {
-         this->connection = connection;
+      void set_connection(tbnet::Connection *connection) {
+         connection_ = connection;
       }
 
       // direction
-      void set_direction(int direction)
-      {
-         this->direction = direction;
+      void set_direction(int direction) {
+         direction_ = direction;
       }
 
       // direction
-      int get_direction()
-      {
-         return direction;
+      int get_direction() {
+         return direction_;
       }
 
-      void free()
-      {
-         if (!no_free) {
-            delete this;
-         }
+      // recv_time
+      void set_recv_time(uint64_t recv_time) {
+         recv_time_=recv_time;
       }
 
-      void set_no_free()
-      {
-         no_free = true;
+      uint64_t get_recv_time() {
+         return recv_time_;
       }
 
    private:
       BasePacket& operator = (const BasePacket&);
 
-      tbnet::Connection *connection;
-      int direction;
-      bool no_free;
-   public:
-      uint8_t server_flag;
-      int64_t request_time;
+      tbnet::Connection *connection_;
+      int direction_;
+
    protected:
-      size_t fixed_size;
+      int64_t recv_time_;
    };
 
 }

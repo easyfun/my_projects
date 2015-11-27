@@ -1,5 +1,5 @@
-#ifndef LLJZ_DISK_CONFIG_SERVER_H_
-#define LLJZ_DISK_CONFIG_SERVER_H_
+#ifndef LLJZ_DISK_ACCESS_SERVER_H_
+#define LLJZ_DISK_ACCESS_SERVER_H_
 
 #include "tbsys.h"
 #include "tbnet.h"
@@ -8,11 +8,11 @@
 namespace lljz {
 namespace disk {
 
-class ConfigServer : public tbnet::IServerAdapter,
+class AccessServer : public tbnet::IServerAdapter,
     public tbnet::IPacketQueueHandler {
 public:
-    ConfigServer();
-    ~ConfigServer();
+    AccessServer();
+    ~AccessServer();
 
     void Start();
     void Stop();
@@ -35,8 +35,9 @@ private:
 
     tbnet::PacketQueueThread task_queue_thread_;
 //    server_conf_thread my_server_conf_thread_;
-    int64_t disconnThrowPackets_;   // 连接失效丢弃的请求包数
-    int64_t timeoutThrowPackets_;   // 排队超时丢弃的请求包数
+    //客户端packet统计信息
+    uint64_t clientDisconnThrowPackets_;   // 客户端连接失效丢弃的请求包数
+    uint64_t queueThreadTimeoutThrowPackets_;   // PacketQueueThread排队超时丢弃的请求包数
 };
 
 }

@@ -14,7 +14,7 @@ public:
     ~PacketFactory() {}
 
     tbnet::Packet *createPacket(int pcode) {
-        if (0==pcode%2)
+        if (RESPONSE_PACKET==pcode)
             return new ResponsePacket();
         return new RequestPacket();
     }
