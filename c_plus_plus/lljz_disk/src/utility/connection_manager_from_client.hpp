@@ -42,7 +42,7 @@ public:
     bool RegisterConnection(tbnet::Connection* connection);
     
     // 返回值无用
-    bool SendPacket(tbnet::Packet* packet);
+    bool PostPacket(tbnet::Packet* packet);
 
 
 public:

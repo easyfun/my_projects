@@ -31,7 +31,7 @@ private:
     PacketFactory packet_factory_;
     tbnet::DefaultPacketStreamer packet_streamer_;
     tbnet::Transport packet_transport_;
-//    tbnet::Transport heartbeat_transport_;
+    tbnet::Transport to_server_transport_;//send packet to business server
 
     tbnet::PacketQueueThread task_queue_thread_;
 //    server_conf_thread my_server_conf_thread_;

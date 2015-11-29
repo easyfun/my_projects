@@ -38,7 +38,7 @@ bool RegisterConnection::RegisterConnection(tbnet::Connection* connection) {
 }
 
 
-bool ConnectionManagerFromClient::SendPacket(tbnet::Packet* packet) {
+bool ConnectionManagerFromClient::PostPacket(tbnet::Packet* packet) {
     bool ret=true;
     ConnectionInfo* connInfo=NULL:
     tbnet::Connection* conn=connInfo->connection_;
