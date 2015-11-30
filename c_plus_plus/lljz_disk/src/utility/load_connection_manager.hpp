@@ -9,12 +9,25 @@ namespace disk {
 
 typedef __gnu_cxx::hash_map<uint64_t, Connection*, __gnu_cxx::hash<int> > TBNET_CONN_MAP;
 
-class LoadConnectionManager {
+struct ReconnectInfo {
+    uint64_t server_id_;
+    int status_;
+
+    ReconnectInfo(uint64_t server_id) {
+        server_id_=server_id;
+        status_=0;//1-正在连接
+    }
+};
+
+class LoadConnectionManager:public IPacketHandler {
 public:
     LoadConnectionManager(tbnet::Transport *transport, 
         tbnet::IPacketStreamer *streamer, 
         tbnet::IPacketHandler *packetHandler);
     ~LoadConnectionManager();
+
+    //IPacketHandler
+    tbnet::HPRetCode handlePacket(Packet *packet, void *args);
 
     tbnet::Connection *connect(uint64_t serverId, 
         bool autoConn=false);
@@ -25,6 +38,8 @@ public:
     bool sendPacket(tbnet::Packet* packet, 
         tbnet::IPacketHandler *packetHandler = NULL, 
         void *args = NULL, bool noblocking = true);
+
+    void CheckReconnect();
 
 private:
 //    uint32_t server_type_;

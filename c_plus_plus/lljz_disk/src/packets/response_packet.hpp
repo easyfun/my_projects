@@ -57,11 +57,14 @@ public:
     }
 
 public:
-    uint32_t src_id_;   //源服务id
-    uint32_t dest_id_;  //目标服务id
+    uint16_t src_type_; //源类型
+    uint64_t src_id_;   //源id
+    uint16_t dest_type_;//目标类型
+    uint64_t dest_id_;  //目标id
     uint32_t msg_id_;   //消息id
     //请求id，继承自Packet::_packetHeader._chid
     //uint32_t version_;  //消息版本号
+    uint32_t error_code; //错误码
     char data_[RESPONSE_PACKET_MAX_SIZE]; //
 };
 

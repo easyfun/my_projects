@@ -10,6 +10,7 @@ namespace disk {
 class AccessPacket : public RequestPacket {
 public:
     AccessPacket() {
+        cli_src_type_=0;
         cli_src_id_=0;
         cli_chid_=0;
     }
@@ -23,7 +24,8 @@ public:
 
 public:
     //客户端原始Packet关键字段
-    uint32_t cli_src_id_;
+    uint16_t cli_src_type_;
+    uint64_t cli_src_id_;
     uint32_t cli_chid_;
 };
 

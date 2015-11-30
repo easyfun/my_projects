@@ -19,6 +19,7 @@ public:
 
     //IServerAdapter interface
     virtual tbnet::IPacketHandler::HPRetCode handlePacket(tbnet::Connection *connection, tbnet::Packet *packet);
+    //接收客户端packet处理线程
 
     // IPacketQueueHandler interface
     bool handlePacketQueue(tbnet::Packet * apacket, void *args);

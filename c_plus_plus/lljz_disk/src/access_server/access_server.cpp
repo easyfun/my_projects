@@ -99,9 +99,13 @@ bool AccessServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
             RequestPacket *clientReq = (RequestPacket * ) packet;
             AccessPacket *accessReq = new AccessPacket();
             accessReq->set_recv_time(tbsys::CTimeUtil::getTime());
+            accessReq->set_connection(clientReq->get_connection());
+            accessReq->cli_src_type_=clientReq->src_type_;
             accessReq->cli_src_id_=clientReq->src_id_;
             accessReq->cli_chid_=clientReq->getChannelId();
+            accessReq->src_type_=0;
             accessReq->src_id_=0;
+            accessReq->dest_type_=clientReq->dest_type_;
             accessReq->dest_id_=clientReq->dest_id_;
             accessReq->msg_id_=clientReq->msg_id_;
             accessReq->version_=clientReq->version_;
@@ -109,7 +113,7 @@ bool AccessServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
 
             //发送到业务服务器
             //发送错误返回目标服务器不可达
-            if(conn->postPacket(resp) == false) {
+            if(conn->postPacket(accessReq) == false) {
                 delete accessReq;
             }
 

@@ -20,13 +20,18 @@ struct ServerURL {
     }
 };
 
-class ConnectionManagerToServer:public tbsys::Runnable {
+class ConnectionManagerToServer:public tbsys::Runnable
+/*,public IPacketHandler*/ {
 public:
     ConnectionManagerToServer(tbnet::Transport* transport,
         tbnet::IPacketStreamer* packet_streamer,
         tbnet::IPacketHandler* packet_handler);
     ~ConnectionManagerToServer();
 
+/*
+    //IPacketHandler
+    tbnet::HPRetCode handlePacket(Packet *packet, void *args);
+*/
     bool start(const char* config_server_spec);
     bool stop();
     bool wait();
@@ -34,9 +39,14 @@ public:
     //Runnable
     void run(tbsys::CThread* thread, void* arg);
 
+    void CheckConfigServer();
+    void CheckReconnServer();
+
 
     //Post packet to server
-    bool PostPacket(tbnet::Packet* packet, void* arg=NULL);
+    bool PostPacket(uint16_t server_type,
+        tbnet::Packet* packet, 
+        void* args=NULL);
 
 public:
 
