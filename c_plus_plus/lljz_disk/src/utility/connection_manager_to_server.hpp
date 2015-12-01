@@ -64,10 +64,10 @@ public:
         tbnet::IPacketHandler* packet_handler);
     ~ConnectionManagerToServer();
 
+    /* chat with config_server
+    */
     //IPacketHandler interface
-    //chat with config_server
     tbnet::HPRetCode handlePacket(Packet *packet, void *args);
-
     // IPacketQueueHandler interface
     bool handlePacketQueue(tbnet::Packet * apacket, void *args);
 

@@ -120,13 +120,102 @@ tbsys::CThread* thread, void* arg) {
 
 void ConnectionManagerToServer::CheckConfigServer() {
     //get server url from config_server
+    RequestPacket* req=new RequestPacket;
+
+    conn_to_config_server_->postPacket(req);
+}
+
+void ConnectionManagerToServer::CheckReconnServer() {
+    __gnu_cxx::hash_map<uint32_t,
+                        LoadConnectionManager*>::iteraotr it;
+    LoadConnectionManager* lcm;
+
+    mutex_.lock();
+    for (it=conn_manager_.begin();
+    it!=conn_manager_.end();
+    it++) {
+        lcm=it->second;
+        lcm->CheckReconnect();
+    }
+    mutex_.unlock();
+}
+
+bool ConnectionManagerToServer::PostPacket(
+uint16_t server_type,
+tbnet::Packet* packet, 
+void* args) {
+
+    __gnu_cxx::hash_map<uint32_t,
+                        LoadConnectionManager*>::iteraotr it;
+    LoadConnectionManager* lcm=NULL;
+    mutex_.lock();
+    it=conn_manager_.find(server_type);
+    if (conn_manager_.end()!=it) {
+        lcm=it->second;
+    }
+    mutex_.unlock();
+
+    if (lcm==NULL) {
+        return false;
+    }
+    return lcm->sendPacket(packet,packet_handler_,args)
+}
+
+void ConnectionManagerToServer::DisConnect(
+uint64 server_id) {
+
+    __gnu_cxx::hash_map<uint32_t,
+                        LoadConnectionManager*>::iteraotr it;
+    LoadConnectionManager* lcm=NULL;
+    uint16_t server_type;
+    mutex_.lock();
+    int size=server_url_.size();
+    for (int i=0;i<size;i++) {
+        if (server_id==server_url_[i]->server_id_) {
+            server_type=server_url_[i]->server_type_;
+            break;
+        }
+    }
+    if (i==size) {
+        mutex_.unlock();
+        return;
+    }
+
+    it=conn_manager_.find(server_type);
+    if (conn_manager_.end()!=it) {
+        lcm=it->second;
+    }
+    mutex_.unlock();
+
+    if (lcm==NULL) {
+        return;
+    }
+
+    lcm->disconnect(server_id);
+}
+
+
+tbnet::HPRetCode ConnectionManagerToServer::handlePacket(
+Packet *packet, void *args) {
+    if (!packet->isRegularPacket()) { // 是否正常的包
+        tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
+        int cmd=ctrl_packet->getCommand();
+        if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
+        }
+        return IPacketHandler::FREE_CHANNEL;
+    }
+
+    task_queue_thread_.push(packet);
+    return IPacketHandler::FREE_CHANNEL;
+}
+
+bool ConnectionManagerToServer::handlePacketQueue(
+tbnet::Packet * apacket, void *args) {
     std::string spec;
     uint32_t server_type=0;
     uint32_t server_id=0;
     std::vector<ServerURL*> buff_server_url;
     bool server_changed=false;
-
-    RequestPacket* req=new RequestPacket;
 
     char data[1024]={0};
     Json::Value data_root;
@@ -236,90 +325,10 @@ void ConnectionManagerToServer::CheckConfigServer() {
         i++;
     }
     mutex_.unlock();
+
+    return true;
 }
 
-void ConnectionManagerToServer::CheckReconnServer() {
-    __gnu_cxx::hash_map<uint32_t,
-                        LoadConnectionManager*>::iteraotr it;
-    LoadConnectionManager* lcm;
-
-    mutex_.lock();
-    for (it=conn_manager_.begin();
-    it!=conn_manager_.end();
-    it++) {
-        lcm=it->second;
-        lcm->CheckReconnect();
-    }
-    mutex_.unlock();
-}
-
-bool ConnectionManagerToServer::PostPacket(
-uint16_t server_type,
-tbnet::Packet* packet, 
-void* args) {
-
-    __gnu_cxx::hash_map<uint32_t,
-                        LoadConnectionManager*>::iteraotr it;
-    LoadConnectionManager* lcm=NULL;
-    mutex_.lock();
-    it=conn_manager_.find(server_type);
-    if (conn_manager_.end()!=it) {
-        lcm=it->second;
-    }
-    mutex_.unlock();
-
-    if (lcm==NULL) {
-        return false;
-    }
-    return lcm->sendPacket(packet,packet_handler_,args)
-}
-
-void ConnectionManagerToServer::DisConnect(
-uint64 server_id) {
-
-    __gnu_cxx::hash_map<uint32_t,
-                        LoadConnectionManager*>::iteraotr it;
-    LoadConnectionManager* lcm=NULL;
-    uint16_t server_type;
-    mutex_.lock();
-    int size=server_url_.size();
-    for (int i=0;i<size;i++) {
-        if (server_id==server_url_[i]->server_id_) {
-            server_type=server_url_[i]->server_type_;
-            break;
-        }
-    }
-    if (i==size) {
-        mutex_.unlock();
-        return;
-    }
-
-    it=conn_manager_.find(server_type);
-    if (conn_manager_.end()!=it) {
-        lcm=it->second;
-    }
-    mutex_.unlock();
-
-    if (lcm==NULL) {
-        return;
-    }
-
-    lcm->disconnect(server_id);
-}
-
-
-tbnet::HPRetCode ConnectionManagerToServer::handlePacket(
-Packet *packet, void *args) {
-    if (!packet->isRegularPacket()) { // 是否正常的包
-        tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
-        int cmd=ctrl_packet->getCommand();
-        if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
-        }
-        return IPacketHandler::FREE_CHANNEL;
-    }
-
-    return IPacketHandler::FREE_CHANNEL;
-}
 
 }//end disk
 }//end lljz
