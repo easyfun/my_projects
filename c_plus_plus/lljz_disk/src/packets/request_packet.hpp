@@ -6,14 +6,16 @@
 namespace lljz {
 namespace disk {
 
-#define REQUEST_PACKET_HEAD_LEN 16
+#define REQUEST_PACKET_HEAD_LEN 28
 #define REQUEST_PACKET_MAX_SIZE 4096
 
 class RequestPacket : public BasePacket {
 public:
     RequestPacket() {
         setPCode(REQUEST_PACKET);
+        src_type_=0;
         src_id_=0;
+        dest_type_=0;
         dest_id_=0;
         msg_id_=0;
         version_=0;
@@ -25,8 +27,10 @@ public:
     }
 
     bool encode(tbnet::DataBuffer *output) {
-        output->writeInt32(src_id_);
-        output->writeInt32(dest_id_);
+        output->writeInt16(src_type_);
+        output->writeInt64(src_id_);
+        output->writeInt16(dest_type_);
+        output->writeInt64(dest_id_);
         output->writeInt32(msg_id_);
         output->writeInt32(version_);
         output->writeBytes(data_, strlen(data_));
@@ -45,8 +49,10 @@ public:
             return false;
         }
 
-        src_id_=input->readInt32();
-        dest_id_=input->readInt32();
+        src_type_=input->readInt16();
+        src_id_=input->readInt64();
+        dest_type_=input->readInt16();
+        dest_id_=input->readInt64();
         msg_id_=input->readInt32();
         version_=input->readInt32();
         if (!input->readBytes(data_,header->_dataLen-REQUEST_PACKET_HEAD_LEN)) {

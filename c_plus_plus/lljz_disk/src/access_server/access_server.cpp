@@ -7,13 +7,14 @@ using namespace tbnet;
 namespace lljz {
 namespace disk {
 
-AccessServer::AccessServer() {
+AccessServer::AccessServer()
+:conn_manager_to_srv_(NULL) {
     clientDisconnThrowPackets_=0;
     queueThreadTimeoutThrowPackets_=0;
 }
 
 AccessServer::~AccessServer() {
-
+    Destroy();
 }
 
 void AccessServer::Start() {
@@ -24,13 +25,22 @@ void AccessServer::Start() {
     //process thread
     task_queue_thread_.start();
 
+    conn_manager_to_srv_=new ConnectionManagerToServer(
+        &to_server_transport_,&packet_streamer_,NULL)
+    
+    if (!conn_manager_to_srv_->start()) {
+        TBSYS_LOG(ERROR,"%s","config_server url error");
+        Stop();
+        return;
+    }
+
     //transport
     char spec[32];
     bool ret=true;
     if (ret) {
         int port=TBSYS_CONFIG.getInt("config_server","port",10000);
         sprintf(spec,"tcp::%d",port);
-        if (packet_transport_.listen(spec, &packet_streamer_,this)==NULL) {
+        if (from_client_transport_.listen(spec, &packet_streamer_,this)==NULL) {
             TBSYS_LOG(ERROR,"listen port %d error",port);
             ret=false;
         } else {
@@ -40,23 +50,48 @@ void AccessServer::Start() {
 
     if (ret) {
         TBSYS_LOG(INFO,"--- program stated PID: %d ---",getpid());
-        packet_transport_.start();
+        from_client_transport_.start();
+        to_server_transport_.start();
     } else {
         Stop();
     }
 
     task_queue_thread_.wait();
-    packet_transport_.wait();
+    to_server_transport_.wait();
+    from_client_transport_.wait();
+    conn_manager_to_srv_->wait();
 
     Destroy();
 }
 
 void AccessServer::Stop() {
     task_queue_thread_.stop();
-    packet_transport_.stop();
+    to_server_transport_.stop();
+    from_client_transport_.stop();
+    conn_manager_to_srv_->stop();
 }
 
-tbnet::IPacketHandler::HPRetCode AccessServer::handlePacket(tbnet::Connection *connection, tbnet::Packet *packet) {
+int AccessServer::Initialize() {
+    //packet_streamer
+    packet_streamer_.setPacketFactory(&packet_factory_);
+
+    int thread_count = TBSYS_CONFIG.getInt("config_server","work_thread_count",4);
+    task_queue_thread_.setThreadParameter(thread_count,this,NULL);
+    return EXIT_SUCCESS;
+}
+
+int AccessServer::Destroy() {
+    if (conn_manager_to_srv_) {
+        delete conn_manager_to_srv_;
+    }
+    return EXIT_SUCCESS;
+}
+
+tbnet::IPacketHandler::HPRetCode 
+AccessServer::handlePacket(
+tbnet::Connection *connection, 
+tbnet::Packet *packet) {
+
     if (!packet->isRegularPacket()) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
             ((tbnet::ControlPacket* )packet)->getCommand());
@@ -73,7 +108,9 @@ tbnet::IPacketHandler::HPRetCode AccessServer::handlePacket(tbnet::Connection *c
     return tbnet::IPacketHandler::KEEP_CHANNEL;
 }
 
-bool AccessServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
+bool AccessServer::handlePacketQueue(
+tbnet::Packet * apacket, void *args) {
+
     BasePacket *packet = (BasePacket *) apacket;
     tbnet::Connection* conn=packet->get_connection();
     int64_t nowTime=tbsys::CTimeUtil::getTime();
@@ -96,30 +133,37 @@ bool AccessServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
     int pcode = apacket->getPCode();
     switch (pcode) {
         case REQUEST_PACKET: {
-            RequestPacket *clientReq = (RequestPacket * ) packet;
-            AccessPacket *accessReq = new AccessPacket();
-            accessReq->set_recv_time(tbsys::CTimeUtil::getTime());
-            accessReq->set_connection(clientReq->get_connection());
-            accessReq->cli_src_type_=clientReq->src_type_;
-            accessReq->cli_src_id_=clientReq->src_id_;
-            accessReq->cli_chid_=clientReq->getChannelId();
-            accessReq->src_type_=0;
-            accessReq->src_id_=0;
-            accessReq->dest_type_=clientReq->dest_type_;
-            accessReq->dest_id_=clientReq->dest_id_;
-            accessReq->msg_id_=clientReq->msg_id_;
-            accessReq->version_=clientReq->version_;
-            strcat(accessReq->data_,clientReq->data_);
+            RequestPacket *client_req = (RequestPacket *)packet;
+            AccessPacket *access_req = new AccessPacket();
+            access_req->set_recv_time(tbsys::CTimeUtil::getTime());
+            access_req->set_connection(client_req->get_connection());
+            access_req->cli_src_type_=client_req->src_type_;
+            access_req->cli_src_id_=client_req->src_id_;
+            access_req->cli_chid_=client_req->getChannelId();
+            access_req->src_type_=0;
+            access_req->src_id_=0;
+            access_req->dest_type_=client_req->dest_type_;
+            access_req->dest_id_=client_req->dest_id_;
+            access_req->msg_id_=client_req->msg_id_;
+            access_req->version_=client_req->version_;
+            strcat(access_req->data_,client_req->data_);
 
             //发送到业务服务器
-            //发送错误返回目标服务器不可达
-            if(conn->postPacket(accessReq) == false) {
-                delete accessReq;
+            if (false==conn_manager_to_srv_->PostPacket(
+                    access_req->dest_type,access_req,access_req)) {
+                //发送错误返回目标服务器不可达
+                ResponsePacket* resp=new ResponsePacket;
+                resp->setChannelId(packet->getChannelId());
+                resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
+                resp->src_id_=client_req->dest_id_;
+                resp->dest_id_=client_req->src_id_;
+                sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
+                if (false==conn->postPacket(resp)) {
+                    delete resp;
+                }
+                delete access_req;
             }
-
-            // 传accessReq, args=accessReq
-            // 不用维护接入服务分配的chid与客户端连接映射关系
-
+            delete client_req;
         }
         break;
 
@@ -130,18 +174,48 @@ bool AccessServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
     return true;
 }
 
-int AccessServer::Initialize() {
-    //packet_streamer
-    packet_streamer_.setPacketFactory(&packet_factory_);
+//收到业务应答包事件处理
+tbnet::HPRetCode AccessServer::handlePacket(
+Packet *packet, void *args) {
 
-    int thread_count = TBSYS_CONFIG.getInt("config_server","work_thread_count",4);
-    task_queue_thread_.setThreadParameter(thread_count,this,NULL);
-    return EXIT_SUCCESS;
+    AccessPacket *access_req=NULL;
+    ResponsePacket* resp=NULL;
+    int64_t now_time=tbsys::CTimeUtil::getTime();
+    if (!packet->isRegularPacket()) { // 是否正常的包
+        tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
+        int cmd=ctrl_packet->getCommand();
+        //连接断开事件通知给连接管理器处理
+        if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
+            //释放资源,不能用CMD_DISCONN_PACKET
+            access_req=(AccessPacket* )args;
+            if (now_time - access_req->get_recv_time() <= PACKET_WAIT_FOR_SERVER_MAX_TIME) {
+                //发送错误返回目标服务器不可达
+                resp=new ResponsePacket;
+                resp->setChannelId(access_req->getChannelId());
+                resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
+                resp->src_id_=access_req->dest_id_;
+                resp->dest_id_=access_req->src_id_;
+                sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
+                if (false==conn->postPacket(resp)) {
+                    delete resp;
+                }
+            }
+            delete access_req;
+        }
+        return IPacketHandler::FREE_CHANNEL;
+    }
+
+
+    access_req=(AccessPacket* )args;
+    resp=new ResponsePacket;
+    if (false==conn->postPacket(resp)) {
+        delete resp;
+    }
+    delete packet;
+
+    return IPacketHandler::FREE_CHANNEL;
 }
 
-int AccessServer::Destroy() {
-    return EXIT_SUCCESS;
-}
 
 }
 }

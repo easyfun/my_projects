@@ -4,7 +4,33 @@
 namespace lljz {
 namespace disk {
 
-ConnectionManagerToServer::ConnectionManagerToServer(tbnet::Transport* transport,
+/**********************************************************************/
+// class PacketHandlerConnToServer
+/**********************************************************************/
+tbnet::HPRetCode PacketHandlerConnToServer::handlePacket(Packet *packet, void *args) {
+    if (!packet->isRegularPacket()) { // 是否正常的包
+        tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
+        int cmd=ctrl_packet->getCommand();
+        //连接断开事件通知给连接管理器处理
+        if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
+            tbnet::Socket* socket=(tbnet::Socket* )args;
+            //通知连接无效
+            cmts_->DisConnect(socket->getId());
+        } else {
+            assert(false);
+        }
+    } else {
+        assert(false);
+    }
+    return IPacketHandler::FREE_CHANNEL;
+}
+
+
+/**********************************************************************/
+// class ConnectionManagerToServer
+/**********************************************************************/
+ConnectionManagerToServer::ConnectionManagerToServer(
+tbnet::Transport* transport,
 tbnet::IPacketStreamer* packet_streamer,
 tbnet::IPacketHandler* packet_handler)
 :transport_(transport)
@@ -20,19 +46,27 @@ ConnectionManagerToServer::~ConnectionManagerToServer() {
     destroy();
 }
 
-bool ConnectionManagerToServer::start(
-    const char* config_server_spec) {
+bool ConnectionManagerToServer::start() {
+
+    const char * server_spec = TBSYS_CONFIG.getString("server","config_server",NULL);
+    if (NULL == server_spec) {
+        TBSYS_LOG(ERROR,"%s","config_server url error");
+        return false;
+    }
     memset(config_server_spec_,0,
         sizeof(config_server_spec_));
-    strcat(config_server_spec_,config_server_spec);
+    strcat(config_server_spec_,server_spec);
+
     conn_to_config_server_=transport_->connect(
         config_server_spec_,packet_streamer_,true);
     if (NULL==conn_to_config_server_) {
+        TBSYS_LOG(ERROR,"%s","connect to config_server error");
         return false;
     }
-    transport_->start();
+    conn_to_config_server_->setDefaultPacketHandler(this);
 
-    get_server_url_thread_.start(this,NULL);
+    run_thread_.start(this,NULL);
+    task_queue_thread_.start();    
     return true;
 }
 
@@ -42,7 +76,7 @@ bool ConnectionManagerToServer::stop() {
 }
 
 bool ConnectionManagerToServer::wait() {
-    get_server_url_thread_.join();
+    run_thread_.join();
     destroy();
     return true;
 }
@@ -53,6 +87,7 @@ void ConnectionManagerToServer::destroy() {
 
 void ConnectionManagerToServer::run(
 tbsys::CThread* thread, void* arg) {
+
     int check_config_server=0; // 60s
     int check_reconn_server=0; // 5s
 
@@ -90,6 +125,8 @@ void ConnectionManagerToServer::CheckConfigServer() {
     uint32_t server_id=0;
     std::vector<ServerURL*> buff_server_url;
     bool server_changed=false;
+
+    RequestPacket* req=new RequestPacket;
 
     char data[1024]={0};
     Json::Value data_root;
@@ -153,6 +190,7 @@ void ConnectionManagerToServer::CheckConfigServer() {
     //refresh connect manager
     __gnu_cxx::hash_map<uint32_t,
         LoadConnectionManager*>::iteraotr it;
+    __gnu_cxx::hash_map<uint64_t,uint16_t> it_type;
     LoadConnectionManager* load_conn_manager=NULL;
     mutex_.lock();
     for (int i=0;i<server_url_.size();i++) {
@@ -167,7 +205,7 @@ void ConnectionManagerToServer::CheckConfigServer() {
                     transport_,
                     packet_streamer_,
                     packet_handler_);
-                conn_manager_[server_url_[i]->server_id_]=
+                conn_manager_[server_url_[i]->server_type_]=
                     load_conn_manager;
             } else {
                 load_conn_manager=it->second;
@@ -215,17 +253,11 @@ void ConnectionManagerToServer::CheckReconnServer() {
     mutex_.unlock();
 }
 
-/*
-tbnet::HPRetCode ConnectionManagerToServer::handlePacket(
-Packet *packet, void *args) {
-
-}
-*/
-
 bool ConnectionManagerToServer::PostPacket(
 uint16_t server_type,
 tbnet::Packet* packet, 
 void* args) {
+
     __gnu_cxx::hash_map<uint32_t,
                         LoadConnectionManager*>::iteraotr it;
     LoadConnectionManager* lcm=NULL;
@@ -242,6 +274,52 @@ void* args) {
     return lcm->sendPacket(packet,packet_handler_,args)
 }
 
+void ConnectionManagerToServer::DisConnect(
+uint64 server_id) {
+
+    __gnu_cxx::hash_map<uint32_t,
+                        LoadConnectionManager*>::iteraotr it;
+    LoadConnectionManager* lcm=NULL;
+    uint16_t server_type;
+    mutex_.lock();
+    int size=server_url_.size();
+    for (int i=0;i<size;i++) {
+        if (server_id==server_url_[i]->server_id_) {
+            server_type=server_url_[i]->server_type_;
+            break;
+        }
+    }
+    if (i==size) {
+        mutex_.unlock();
+        return;
+    }
+
+    it=conn_manager_.find(server_type);
+    if (conn_manager_.end()!=it) {
+        lcm=it->second;
+    }
+    mutex_.unlock();
+
+    if (lcm==NULL) {
+        return;
+    }
+
+    lcm->disconnect(server_id);
+}
+
+
+tbnet::HPRetCode ConnectionManagerToServer::handlePacket(
+Packet *packet, void *args) {
+    if (!packet->isRegularPacket()) { // 是否正常的包
+        tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
+        int cmd=ctrl_packet->getCommand();
+        if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
+        }
+        return IPacketHandler::FREE_CHANNEL;
+    }
+
+    return IPacketHandler::FREE_CHANNEL;
+}
 
 }//end disk
 }//end lljz

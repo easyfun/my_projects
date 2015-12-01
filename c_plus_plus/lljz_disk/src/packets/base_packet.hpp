@@ -37,6 +37,12 @@ namespace disk {
 #define REQUEST_PACKET 0
 #define RESPONSE_PACKET 1
 
+//server type
+enum {
+   SERVER_TYPE_CONFIG_SERVER=0x0001,   //配置服务
+   SERVER_TYPE_ACCESS_SERVER=0x0002    //接入服务
+}
+
 //config_server-获取服务列表
 #define CONFIG_SERVER_GET_SERVICE_LIST_REQ   1
 #define CONFIG_SERVER_GET_SERVICE_LIST_RESP  2

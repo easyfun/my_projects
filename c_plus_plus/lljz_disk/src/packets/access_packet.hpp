@@ -27,6 +27,7 @@ public:
     uint16_t cli_src_type_;
     uint64_t cli_src_id_;
     uint32_t cli_chid_;
+//    tbnet::Connection* cli_conn_;
 };
 
 }

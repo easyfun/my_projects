@@ -51,12 +51,20 @@ uint64_t serverId,bool autoConn) {
         TBSYS_LOG(WARN, "Á¬½Óµ½·þÎñÆ÷Ê§°Ü: %s", spec);
         rw_simple_lock_.unlock();
         return NULL;
-    } else {
-        conn->setDefaultPacketHandler(_packetHandler);
-        conn->setQueueLimit(_queueLimit);
-        conn->setQueueTimeout(_queueTimeout);
-        _connectMap[serverId] = conn;
-        server_id_.push_back(serverId);
+    }
+
+    conn->setDefaultPacketHandler(_packetHandler);
+    conn->setQueueLimit(_queueLimit);
+    conn->setQueueTimeout(_queueTimeout);
+    _connectMap[serverId] = conn;
+    server_id_.push_back(serverId);
+
+    req=new RequestPacket;
+    if (false == conn->postPacket(req,
+                        this,
+                        conn,
+                        false)) {
+        delete req;
     }
 
     rw_simple_lock_.unlock();
@@ -233,6 +241,7 @@ void LoadConnectionManager::CheckReconnect() {
 // 服务注册结果
 tbnet::HPRetCode LoadConnectionManager::handlePacket(
 Packet *packet, void *args) {
+
     if (!packet->isRegularPacket()) { // 是否正常的包
         tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
         int cmd=ctrl_packet->getCommand();
@@ -256,9 +265,9 @@ Packet *packet, void *args) {
 
     tbnet::Connection* conn=(tbnet::Connection* )args;
     ResponsePakcet* resp=(ResponsePacket* )packet;
-    int size=reconn_server_id_.size();
     uint64_t server_id=0;
     reconn_mutex_.lock();
+    int size=reconn_server_id_.size();
     for (int i=0;i<size;i++) {
         if (reconn_server_id_[i].server_id_!=conn->getServerId()) {
             continue;
