@@ -87,7 +87,8 @@ public:
         tbnet::Packet* packet, 
         void* args=NULL);
 
-    void DisConnect(uint64_t server_id);
+    //server_id断开自动重连
+    void DisToReConnect(uint64_t server_id);
 
 private:
     tbnet::Transport* transport_;
@@ -99,10 +100,15 @@ private:
     //chat with config_server
     tbnet::PacketQueueThread task_queue_thread_;
 
+    //当前服务器服务配置
+    uint16_t self_server_type_;
+    uint64_t self_server_id_;
+    char self_server_spec_[100];
 
+    //配置服务器
+    char config_server_spec_[100];
     bool stop_;
     tbsys::CThread run_thread_;
-    char config_server_spec_[100];
     tbnet::Connection* conn_to_config_server_;
 
     //not include config_server,access_server

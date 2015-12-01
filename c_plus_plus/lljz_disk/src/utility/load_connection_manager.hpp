@@ -31,6 +31,7 @@ public:
 
     tbnet::Connection *connect(uint64_t serverId, 
         bool autoConn=false);
+    //server_id断开不重连，从依赖的后端服务移出
     void disconnect(uint64_t serverId);
     void setDefaultQueueLimit(int queueLimit);
     void setDefaultQueueTimeout(int queueTimeout);
@@ -40,6 +41,8 @@ public:
         void *args = NULL, bool noblocking = true);
 
     void CheckReconnect();
+    //server_id断开自动重连
+    void DisToReconnect(uint64_t server_id);
 
 private:
 //    uint32_t server_type_;

@@ -15,7 +15,7 @@ tbnet::HPRetCode PacketHandlerConnToServer::handlePacket(Packet *packet, void *a
         if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
             tbnet::Socket* socket=(tbnet::Socket* )args;
             //通知连接无效
-            cmts_->DisConnect(socket->getId());
+            cmts_->DisToReConnect(socket->getId());
         } else {
             assert(false);
         }
@@ -121,8 +121,14 @@ tbsys::CThread* thread, void* arg) {
 void ConnectionManagerToServer::CheckConfigServer() {
     //get server url from config_server
     RequestPacket* req=new RequestPacket;
-
-    conn_to_config_server_->postPacket(req);
+    req->src_type_=SERVER_TYPE_ACCESS_SERVER;
+    req->src_id_=0;
+    req->dest_type_=SERVER_TYPE_CONFIG_SERVER;
+    req->dest_id_=0;
+    req->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;
+    if (false==conn_to_config_server_->postPacket(req)) {
+        delete req;
+    }
 }
 
 void ConnectionManagerToServer::CheckReconnServer() {
@@ -144,7 +150,6 @@ bool ConnectionManagerToServer::PostPacket(
 uint16_t server_type,
 tbnet::Packet* packet, 
 void* args) {
-
     __gnu_cxx::hash_map<uint32_t,
                         LoadConnectionManager*>::iteraotr it;
     LoadConnectionManager* lcm=NULL;
@@ -161,9 +166,8 @@ void* args) {
     return lcm->sendPacket(packet,packet_handler_,args)
 }
 
-void ConnectionManagerToServer::DisConnect(
+void ConnectionManagerToServer::DisToReConnect(
 uint64 server_id) {
-
     __gnu_cxx::hash_map<uint32_t,
                         LoadConnectionManager*>::iteraotr it;
     LoadConnectionManager* lcm=NULL;
@@ -191,7 +195,7 @@ uint64 server_id) {
         return;
     }
 
-    lcm->disconnect(server_id);
+    lcm->DisToReConnect(server_id);
 }
 
 
@@ -293,15 +297,14 @@ tbnet::Packet * apacket, void *args) {
                 load_conn_manager=new LoadConnectionManager(
                     transport_,
                     packet_streamer_,
-                    packet_handler_);
+                    &packet_handler_conn_to_server_);//后端连接断开处理
                 conn_manager_[server_url_[i]->server_type_]=
                     load_conn_manager;
             } else {
                 load_conn_manager=it->second;
             }
             load_conn_manager->connect(
-                server_id_[i]->server_id_,
-                NULL,0,0);
+                server_id_[i]->server_id_,false);
         } else if (2==server_url_[i]->changed_) {
             //remove a connection
             //server_url_[i]->changed_=0;

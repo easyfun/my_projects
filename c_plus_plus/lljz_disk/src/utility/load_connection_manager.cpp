@@ -157,7 +157,6 @@ void *args, bool noblocking) {
             packetHandler,
             args,
             noblocking)) {
-            rw_simple_lock_.unlock();
             ret=true;
             break;
         }
@@ -206,6 +205,33 @@ void *args, bool noblocking) {
 
     rw_simple_lock_.unlock();
     return ret;
+}
+
+void LoadConnectionManager::DisToReconnect(uint64_t server_id) {
+    rw_simple_lock_.wrlock();
+    TBNET_CONN_MAP::iterator it = 
+        _connectMap.find(serverId);
+    if (it != _connectMap.end()) {
+        if (it->second) {
+            _transport->disconnect(it->second);
+        }
+        _connectMap.erase(it);
+    }
+
+    int size=server_id_.size();
+    for (int i=0;i<size;) {
+        if (serverId==server_id_[i]) {
+            server_id_.erase(server_id_.begin()+i);
+            size=server_id_.size();
+            continue;
+        }
+        i++;
+    }
+    rw_simple_lock_.unlock();
+
+    reconn_mutex_.lock();
+    reconn_server_id_.push_back(server_id);
+    reconn_mutex_.unlock();
 }
 
 void LoadConnectionManager::CheckReconnect() {
