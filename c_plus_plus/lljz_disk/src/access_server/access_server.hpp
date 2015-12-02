@@ -5,13 +5,15 @@
 #include "tbnet.h"
 #include "packet_factory.hpp"
 #include "connection_manager_to_server.hpp"
+#include "ibusiness_packet_handler.h"
 
 namespace lljz {
 namespace disk {
 
 class AccessServer : public tbnet::IServerAdapter,
 public tbnet::IPacketQueueHandler,
-public tbnet::IPacketHandler {
+public tbnet::IPacketHandler,
+public IBusinessPacketHandler {
 public:
     AccessServer();
     ~AccessServer();
@@ -27,9 +29,9 @@ public:
     // IPacketQueueHandler interface
     bool handlePacketQueue(tbnet::Packet * apacket, void *args);
 
-    //IPacketHandler interface
-    tbnet::HPRetCode handlePacket(Packet *packet, void *args);
-
+    //IBusinessPacketHandler interface
+    bool BusinessHandlePacket(
+        tbnet::Packet *packet, void *args);
 
 private:
     inline int Initialize();

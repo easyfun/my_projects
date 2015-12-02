@@ -56,7 +56,8 @@ void ConfigServer::Stop() {
     packet_transport_.stop();
 }
 
-tbnet::IPacketHandler::HPRetCode ConfigServer::handlePacket(tbnet::Connection *connection, tbnet::Packet *packet) {
+tbnet::IPacketHandler::HPRetCode ConfigServer::handlePacket(
+tbnet::Connection *connection, tbnet::Packet *packet) {
     if (!packet->isRegularPacket()) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
             ((tbnet::ControlPacket* )packet)->getCommand());

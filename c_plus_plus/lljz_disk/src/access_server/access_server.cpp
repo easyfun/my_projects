@@ -26,7 +26,7 @@ void AccessServer::Start() {
     task_queue_thread_.start();
 
     conn_manager_to_srv_=new ConnectionManagerToServer(
-        &to_server_transport_,&packet_streamer_,NULL)
+        &to_server_transport_,&packet_streamer_,this)
     
     if (!conn_manager_to_srv_->start()) {
         TBSYS_LOG(ERROR,"%s","config_server url error");
@@ -175,45 +175,55 @@ tbnet::Packet * apacket, void *args) {
 }
 
 //收到业务应答包事件处理
-tbnet::HPRetCode AccessServer::handlePacket(
-Packet *packet, void *args) {
-
-    AccessPacket *access_req=NULL;
+bool AccessServer::BusinessHandlePacket(
+tbnet::Packet *packet, void *args) {
     ResponsePacket* resp=NULL;
+    AccessPacket *access_req=NULL;
     int64_t now_time=tbsys::CTimeUtil::getTime();
     if (!packet->isRegularPacket()) { // 是否正常的包
         tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
         int cmd=ctrl_packet->getCommand();
-        //连接断开事件通知给连接管理器处理
-        if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
-            //释放资源,不能用CMD_DISCONN_PACKET
+        if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
+            assert(false);
+        } else if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
             access_req=(AccessPacket* )args;
-            if (now_time - access_req->get_recv_time() <= PACKET_WAIT_FOR_SERVER_MAX_TIME) {
-                //发送错误返回目标服务器不可达
-                resp=new ResponsePacket;
-                resp->setChannelId(access_req->getChannelId());
-                resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
-                resp->src_id_=access_req->dest_id_;
-                resp->dest_id_=access_req->src_id_;
-                sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
-                if (false==conn->postPacket(resp)) {
-                    delete resp;
-                }
+            //发送错误返回目标服务器不可达
+            resp=new ResponsePacket;
+            resp->setChannelId(access_req->getChannelId());
+            resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
+            resp->src_id_=access_req->dest_id_;
+            resp->dest_id_=access_req->src_id_;
+            sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
+            if (false==conn->postPacket(resp)) {
+                delete resp;
             }
             delete access_req;
         }
         return IPacketHandler::FREE_CHANNEL;
     }
 
-
     access_req=(AccessPacket* )args;
+    ResponsePacket* business_resp=(ResponsePacket* )packet;
+    if (now_time - access_req->get_recv_time() >= PACKET_WAIT_FOR_SERVER_MAX_TIME) {
+        //发送错误返回目标服务器不可达
+        resp=new ResponsePacket;
+        resp->setChannelId(access_req->getChannelId());
+        resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
+        resp->src_id_=access_req->dest_id_;
+        resp->dest_id_=access_req->src_id_;
+        sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
+        if (false==conn->postPacket(resp)) {
+            delete resp;
+        }
+        return true;
+    }
+
     resp=new ResponsePacket;
     if (false==conn->postPacket(resp)) {
         delete resp;
     }
-    delete packet;
 
-    return IPacketHandler::FREE_CHANNEL;
+    return true;
 }
 
 

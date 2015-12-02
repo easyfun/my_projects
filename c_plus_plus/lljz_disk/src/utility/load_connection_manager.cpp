@@ -13,8 +13,8 @@ tbnet::IPacketHandler *packetHandler) {
     _transport = transport;
     _streamer = streamer;
     _packetHandler = packetHandler;
-    _queueLimit = 256;
-    _queueTimeout = 5000;
+    _queueLimit = 0;//256;
+    _queueTimeout = 60000;//5000;//ms
     _status = 0;
     atomic_set(&last_server_id_index_,0);
 }
@@ -56,19 +56,24 @@ uint64_t serverId,bool autoConn) {
     conn->setDefaultPacketHandler(_packetHandler);
     conn->setQueueLimit(_queueLimit);
     conn->setQueueTimeout(_queueTimeout);
-    _connectMap[serverId] = conn;
-    server_id_.push_back(serverId);
 
     req=new RequestPacket;
-    if (false == conn->postPacket(req,
+    if (conn->postPacket(req,
                         this,
                         conn,
                         false)) {
-        delete req;
+        server_id_.push_back(serverId);
+        _connectMap[serverId] = conn;
+        rw_simple_lock_.unlock();
+        return conn;
     }
 
-    rw_simple_lock_.unlock();
-    return conn;
+    delete req;
+    transport_.disconnect(conn);
+    reconn_mutex_.lock();
+    reconn_server_id_.push_back(serverId);
+    reconn_mutex_.unlock();
+    return NULL;
 }
 
 void LoadConnectionManager::disconnect(
@@ -267,7 +272,6 @@ void LoadConnectionManager::CheckReconnect() {
 // 服务注册结果
 tbnet::HPRetCode LoadConnectionManager::handlePacket(
 Packet *packet, void *args) {
-
     if (!packet->isRegularPacket()) { // 是否正常的包
         tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
         int cmd=ctrl_packet->getCommand();
@@ -320,6 +324,64 @@ Packet *packet, void *args) {
 
     return IPacketHandler::FREE_CHANNEL;
 }
+
+/*
+// 服务注册结果
+tbnet::HPRetCode LoadConnectionManager::RegisterHandlePacket(
+tbnet::Packet* packet, void* args) {
+    if (!packet->isRegularPacket()) { // 是否正常的包
+        tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
+        int cmd=ctrl_packet->getCommand();
+        if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
+            reconn_mutex_.lock();
+            int size=reconn_server_id_.size();
+            tbnet::Connection* conn=(tbnet::Connection* )args;
+            for (int i=0;i<size;i++) {
+                if (reconn_server_id_[i].server_id_!=conn->getServerId()) {
+                    continue;
+                }
+                reconn_server_id_[i].status_=0;
+                _transport.disconnect(conn);
+                break;
+            }
+            reconn_mutex_.unlock();
+
+        }
+        return IPacketHandler::FREE_CHANNEL;
+    }
+
+    tbnet::Connection* conn=(tbnet::Connection* )args;
+    ResponsePakcet* resp=(ResponsePacket* )packet;
+    uint64_t server_id=0;
+    reconn_mutex_.lock();
+    int size=reconn_server_id_.size();
+    for (int i=0;i<size;i++) {
+        if (reconn_server_id_[i].server_id_!=conn->getServerId()) {
+            continue;
+        }
+        if (0==resp->error_code) {
+            server_id=reconn_server_id_[i].server_id_;
+            reconn_server_id_.erase(reconn_server_id_.begin()+i);
+        } else {
+            reconn_server_id_[i].status_=0;
+            _transport.disconnect(conn);
+        }
+        break;
+    }
+    reconn_mutex_.unlock();
+
+    if (i!=size) {
+        rw_simple_lock_.wrlock();
+        assert(_connectMap.end()==_connectMap.find(server_id));
+        _connectMap[server_id] = conn;
+        rw_simple_lock_.unlock();
+    } else {
+        _transport.disconnect(conn);
+    }
+
+    return IPacketHandler::FREE_CHANNEL;
+}
+*/
 
 
 }

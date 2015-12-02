@@ -5,8 +5,8 @@ M:Msg_GetDependServerURLList
 请求:
     {
         "spec":"tcp:ip:port",//自身url
-        "srv_type":0,//服务类型
-        "srv_id":0,//ip|port标识，对所有业务服务唯一
+        "srv_type":0,//自身服务类型
+        "srv_id":0,//自身ip|port标识，对所有业务服务唯一
         "dep_srv_type":[]//依赖服务类型
     }
 应答消息id:0x0002

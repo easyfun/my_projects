@@ -19,7 +19,7 @@ struct ReconnectInfo {
     }
 };
 
-class LoadConnectionManager:public IPacketHandler {
+class LoadConnectionManager:public tbnet::IPacketHandler {
 public:
     LoadConnectionManager(tbnet::Transport *transport, 
         tbnet::IPacketStreamer *streamer, 
@@ -27,7 +27,10 @@ public:
     ~LoadConnectionManager();
 
     //IPacketHandler
-    tbnet::HPRetCode handlePacket(Packet *packet, void *args);
+    //阻塞IO loop 优先级任务，待进一步优化
+    tbnet::HPRetCode handlePacket(tbnet::Packet *packet, void *args);
+
+//    tbnet::HPRetCode RegisterHandlePacket(tbnet::Packet* packet, void* args);
 
     tbnet::Connection *connect(uint64_t serverId, 
         bool autoConn=false);
@@ -48,6 +51,7 @@ private:
 //    uint32_t server_type_;
     Transport *_transport;
     IPacketStreamer *_streamer;
+    //disconnect register handler
     IPacketHandler *_packetHandler;
     int _queueLimit;
     int _queueTimeout;

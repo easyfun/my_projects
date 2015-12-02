@@ -34,6 +34,7 @@ public:
         output->writeInt32(msg_id_);
         output->writeInt32(version_);
         output->writeBytes(data_, strlen(data_));
+        set_no_free();
         return true;
     }
 
@@ -60,9 +61,6 @@ public:
         }
         data_[header->_dataLen-REQUEST_PACKET_HEAD_LEN]='\0';
         return true;
-    }
-
-    void free() {
     }
 
 public:

@@ -58,6 +58,7 @@ enum {
    public:
       BasePacket() {
          connection_ = NULL;
+         args_=NULL;
          direction_ = DIRECTION_SEND;
          recv_time_ = 0;
       }
@@ -73,6 +74,14 @@ enum {
       // connection
       void set_connection(tbnet::Connection *connection) {
          connection_ = connection;
+      }
+
+      void* get_args() {
+         return args_;
+      }
+
+      void set_args(void* args) {
+         args_=args;
       }
 
       // direction
@@ -94,11 +103,23 @@ enum {
          return recv_time_;
       }
 
+      void free() {
+         if (!no_free) {
+            delete this;
+         }
+      }
+
+      void set_no_free() {
+         no_free = true;
+      }
+
    private:
       BasePacket& operator = (const BasePacket&);
 
       tbnet::Connection *connection_;
       int direction_;
+      void* args_;//作为客户端，handlePacket(,args)
+      bool no_free;
 
    protected:
       int64_t recv_time_;

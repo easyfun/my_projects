@@ -9,6 +9,7 @@ namespace disk {
 #define RESPONSE_PACKET_HEAD_LEN 12
 #define RESPONSE_PACKET_MAX_SIZE 8192
 
+// [note] need free by manual
 class ResponsePacket : public BasePacket {
 public:
     ResponsePacket() {
@@ -51,9 +52,6 @@ public:
         }
         data_[header->_dataLen-RESPONSE_PACKET_HEAD_LEN]='\0';
         return true;
-    }
-
-    void free() {
     }
 
 public:

@@ -4,41 +4,14 @@
 namespace lljz {
 namespace disk {
 
-/**********************************************************************/
-// class PacketHandlerConnToServer
-/**********************************************************************/
-tbnet::HPRetCode PacketHandlerConnToServer::handlePacket(Packet *packet, void *args) {
-    if (!packet->isRegularPacket()) { // 是否正常的包
-        tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
-        int cmd=ctrl_packet->getCommand();
-        //连接断开事件通知给连接管理器处理
-        if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
-            tbnet::Socket* socket=(tbnet::Socket* )args;
-            //通知连接无效
-            cmts_->DisToReConnect(socket->getId());
-        } else {
-            assert(false);
-        }
-    } else {
-        assert(false);
-    }
-    return IPacketHandler::FREE_CHANNEL;
-}
-
-
-/**********************************************************************/
-// class ConnectionManagerToServer
-/**********************************************************************/
 ConnectionManagerToServer::ConnectionManagerToServer(
 tbnet::Transport* transport,
 tbnet::IPacketStreamer* packet_streamer,
-tbnet::IPacketHandler* packet_handler)
-:transport_(transport)
-,packet_streamer_(packet_streamer)
-,packet_handler_(packet_handler)
-,stop_(false) {
-    memset(config_server_spec_,0,
-        sizeof(config_server_spec_));
+IBusinessPacketHandler* bph)
+ : transport_(transport)
+ , packet_handler_to_server_(this, bph)
+ , packet_streamer_(packet_streamer)
+ , stop_(false) {
     conn_to_config_server_=NULL;
 }
 
@@ -48,14 +21,27 @@ ConnectionManagerToServer::~ConnectionManagerToServer() {
 
 bool ConnectionManagerToServer::start() {
 
-    const char * server_spec = TBSYS_CONFIG.getString("server","config_server",NULL);
-    if (NULL == server_spec) {
-        TBSYS_LOG(ERROR,"%s","config_server url error");
+    const char * str_config_value = TBSYS_CONFIG.getString("server","config_server",NULL);
+    if (NULL == str_config_value) {
+        TBSYS_LOG(ERROR,"%s","config error,config_server url error");
         return false;
     }
     memset(config_server_spec_,0,
         sizeof(config_server_spec_));
-    strcat(config_server_spec_,server_spec);
+    strcat(config_server_spec_,str_config_value);
+
+    self_server_type_=TBSYS_CONFIG.getInt("server","self_server_type",
+        SERVER_TYPE_ACCESS_SERVER);
+    self_server_id_=TBSYS_CONFIG.getInt("server","self_server_id",0);
+    str_config_value=TBSYS_CONFIG.getString("server","self_server_spec","");
+    if (0==strlen(str_config_value)) {
+        TBSYS_LOG(ERROR,"%s","config error,self_server_spec error");
+        return false;
+    }
+    memset(self_server_spec_,0,
+        sizeof(self_server_spec_));
+    strcat(self_server_spec_,str_config_value);
+
 
     conn_to_config_server_=transport_->connect(
         config_server_spec_,packet_streamer_,true);
@@ -65,8 +51,7 @@ bool ConnectionManagerToServer::start() {
     }
     conn_to_config_server_->setDefaultPacketHandler(this);
 
-    run_thread_.start(this,NULL);
-    task_queue_thread_.start();    
+    timer_thread_.start(this,NULL);
     return true;
 }
 
@@ -76,7 +61,7 @@ bool ConnectionManagerToServer::stop() {
 }
 
 bool ConnectionManagerToServer::wait() {
-    run_thread_.join();
+    timer_thread_.join();
     destroy();
     return true;
 }
@@ -87,17 +72,10 @@ void ConnectionManagerToServer::destroy() {
 
 void ConnectionManagerToServer::run(
 tbsys::CThread* thread, void* arg) {
-
     int check_config_server=0; // 60s
     int check_reconn_server=0; // 5s
 
     while (!stop_) {
-/*        {
-            printf("test::ConnectionManagerToServer::run\n");
-            sleep(3);
-            continue;
-        }*/
-
         if (0==check_config_server) {
             CheckConfigServer();
         }
@@ -121,12 +99,30 @@ tbsys::CThread* thread, void* arg) {
 void ConnectionManagerToServer::CheckConfigServer() {
     //get server url from config_server
     RequestPacket* req=new RequestPacket;
-    req->src_type_=SERVER_TYPE_ACCESS_SERVER;
-    req->src_id_=0;
+    req->src_type_=self_server_type_;
+    req->src_id_=self_server_id_;
     req->dest_type_=SERVER_TYPE_CONFIG_SERVER;
     req->dest_id_=0;
     req->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;
-    if (false==conn_to_config_server_->postPacket(req)) {
+
+    Json::Value json_req;
+    json_req["spec"]=self_server_spec_;
+    json_req["srv_type"]=self_server_type_;
+    json_req["srv_id"]=self_server_id_;
+    Json::Value json_dep_srv_type=Json::Value(Json::arrayValue);
+    Json::Value json_srv_type;
+    int size=depend_server_type_.size();
+    for (int i=0;i<size;i++) {
+        json_srv_type=depend_server_type_[i];
+        json_dep_srv_type.append(json_srv_type);
+    }
+    json_req["dep_srv_type"]=json_dep_srv_type;
+    Json::FastWriter writer;
+    std::string req_data=writer.write(json_req);
+    strcat(req->data_,req_data.c_str());
+
+    if (false==conn_to_config_server_->postPacket(req
+        &packet_handler_to_server_,req)) {
         delete req;
     }
 }
@@ -163,7 +159,7 @@ void* args) {
     if (lcm==NULL) {
         return false;
     }
-    return lcm->sendPacket(packet,packet_handler_,args)
+    return lcm->sendPacket(packet,&packet_handler_to_server_,args)
 }
 
 void ConnectionManagerToServer::DisToReConnect(
@@ -204,39 +200,47 @@ Packet *packet, void *args) {
     if (!packet->isRegularPacket()) { // 是否正常的包
         tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
         int cmd=ctrl_packet->getCommand();
-        if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
+        if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
+            //discard
+        } else if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
+            assert(false);
+        } else {
+            assert(false);
         }
-        return IPacketHandler::FREE_CHANNEL;
+    } else {
+        assert(false);
     }
 
-    task_queue_thread_.push(packet);
     return IPacketHandler::FREE_CHANNEL;
 }
 
-bool ConnectionManagerToServer::handlePacketQueue(
+bool ConnectionManagerToServer::GetServiceListResp(
 tbnet::Packet * apacket, void *args) {
-    std::string spec;
-    uint32_t server_type=0;
-    uint32_t server_id=0;
-    std::vector<ServerURL*> buff_server_url;
-    bool server_changed=false;
-
-    char data[1024]={0};
-    Json::Value data_root;
-    Json::Reader reader;
-    if (!reader.parse(data, data_root, false)) {
-        return;
+    ResponsePacket* resp=(ResponsePacket* )apacket;
+    if (0!=resp->error_code) {
+        return true;
     }
 
-    int size=data_root.size();
+    std::string spec;
+    uint32_t server_type;
+    uint32_t server_id;
+    std::vector<ServerURL*> buff_server_url;
+    bool server_changed;
+
+    Json::Value json_data_root;
+    Json::Reader reader;
+    if (!reader.parse(resp->data_, json_data_root, false)) {
+        return true;
+    }
+
+    int size=json_data_root["total"];
     int svr_url_size=server_url_.size();
-    buff_server_url.clear();
 
     server_changed=false;
     //server_url_ check remove
     for (int i=0;i<svr_url_size;i++) {
         for (int j=0;j<size;j++) {
-            spec=data_root[j]["spec"];
+            spec=json_data_root["srv_info"][j]["spec"];
             if (0==strcmp(server_url_[i]->spec_,spec.c_str())) {
                 break;
             }
@@ -249,9 +253,9 @@ tbnet::Packet * apacket, void *args) {
 
     //server_url_ check add
     for (int i=0;i<size;i++) {
-        spec=data_root[i]["spec"].asString();
-        server_type=data_root[i]["server_type"].asInt();
-        server_id=data_root[i]["server_id"].asInt();
+        spec=json_data_root["srv_info"][i]["spec"].asString();
+        server_type=json_data_root["srv_info"][i]["server_type"].asInt();
+        server_id=json_data_root["srv_info"][i]["server_id"].asInt();
 
         for (int j=0;j<svr_url_size;j++) {
             if (0==strcmp(server_url_[j]->spec_, spec.c_str())) {
@@ -270,6 +274,7 @@ tbnet::Packet * apacket, void *args) {
         }
     }
 
+    mutex_.lock();
     size=buff_server_url.size();
     for (int i=0;i<size;i++) {
         server_url_.push(buff_server_url[i])
@@ -277,15 +282,15 @@ tbnet::Packet * apacket, void *args) {
     buff_server_url.clear();
 
     if (!server_changed) {
-        return;
+        mutex_.unlock();
+        return true;
     }
 
     //refresh connect manager
-    __gnu_cxx::hash_map<uint32_t,
+    __gnu_cxx::hash_map<uint16_t,
         LoadConnectionManager*>::iteraotr it;
-    __gnu_cxx::hash_map<uint64_t,uint16_t> it_type;
     LoadConnectionManager* load_conn_manager=NULL;
-    mutex_.lock();
+
     for (int i=0;i<server_url_.size();i++) {
         if (1==server_url_[i]->changed_) {
             //add a connection
@@ -293,18 +298,22 @@ tbnet::Packet * apacket, void *args) {
 
             it=conn_manager_.find(
                 server_url_[i]->server_type_);
-            if (conn_manager_.end()==it) {
-                load_conn_manager=new LoadConnectionManager(
-                    transport_,
-                    packet_streamer_,
-                    &packet_handler_conn_to_server_);//后端连接断开处理
-                conn_manager_[server_url_[i]->server_type_]=
-                    load_conn_manager;
-            } else {
-                load_conn_manager=it->second;
+
+            if (conn_manager_.end()!=it) {
+                //load_conn_manager=it->second;
+                assert(false);
+                continue;
             }
+
+            load_conn_manager=new LoadConnectionManager(
+                transport_,
+                packet_streamer_,
+                &packet_handler_to_server_);//后端连接断开处理
+            conn_manager_[server_url_[i]->server_type_]=
+                load_conn_manager;
             load_conn_manager->connect(
-                server_id_[i]->server_id_,false);
+                server_url_[i]->server_id_,false);
+            }
         } else if (2==server_url_[i]->changed_) {
             //remove a connection
             //server_url_[i]->changed_=0;
@@ -322,6 +331,7 @@ tbnet::Packet * apacket, void *args) {
 
     for (int i=0; i<server_url_.size();) {
         if (2==server_url_[i]->changed_) {
+            delete server_url_[i];
             server_url_.erase(server_url_.begin()+i);
             continue;
         }
