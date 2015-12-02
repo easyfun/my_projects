@@ -27,6 +27,8 @@ tbnet::Packet *packet, void *args) {
         if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
             tbnet::Socket* socket=(tbnet::Socket* )args;
             //通知连接无效
+            //pending call
+            //needing post in pri task queue
             conn_manager_to_srv_->DisToReConnect(socket->getId());
             return IPacketHandler::FREE_CHANNEL;
         } else if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {

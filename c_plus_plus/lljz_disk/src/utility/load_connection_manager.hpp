@@ -7,7 +7,9 @@
 namespace lljz {
 namespace disk {
 
-typedef __gnu_cxx::hash_map<uint64_t, Connection*, __gnu_cxx::hash<int> > TBNET_CONN_MAP;
+typedef __gnu_cxx::hash_map<uint64_t, 
+    tbnet::Connection*, 
+    __gnu_cxx::hash<int> > TBNET_CONN_MAP;
 
 struct ReconnectInfo {
     uint64_t server_id_;
@@ -21,16 +23,16 @@ struct ReconnectInfo {
 
 class LoadConnectionManager:public tbnet::IPacketHandler {
 public:
-    LoadConnectionManager(tbnet::Transport *transport, 
+    LoadConnectionManager(tbnet::Transport* transport, 
         tbnet::IPacketStreamer *streamer, 
         tbnet::IPacketHandler *packetHandler);
     ~LoadConnectionManager();
 
     //IPacketHandler
     //阻塞IO loop 优先级任务，待进一步优化
-    tbnet::HPRetCode handlePacket(tbnet::Packet *packet, void *args);
-
-//    tbnet::HPRetCode RegisterHandlePacket(tbnet::Packet* packet, void* args);
+    //disconnect not proc
+    tbnet::IPacketHandler::HPRetCode 
+    handlePacket(tbnet::Packet *packet, void *args);
 
     tbnet::Connection *connect(uint64_t serverId, 
         bool autoConn=false);
@@ -49,8 +51,8 @@ public:
 
 private:
 //    uint32_t server_type_;
-    Transport *_transport;
-    IPacketStreamer *_streamer;
+    tbnet::Transport *_transport;
+    tbnet::IPacketStreamer *_streamer;
     //disconnect register handler
     IPacketHandler *_packetHandler;
     int _queueLimit;

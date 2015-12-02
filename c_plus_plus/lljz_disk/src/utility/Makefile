@@ -16,7 +16,7 @@ VPATH=../packets
 EXE_OBJ=client.o
 OUTPUT_PATH=./
 
-BUILD=connection_manager_to_server.o
+BUILD=load_connection_manager.o
 
 load_connection_manager.o:load_connection_manager.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ $(TBSDK_INC) $(PROJECT_INC)
