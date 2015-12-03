@@ -25,11 +25,13 @@ tbnet::Packet *packet, void *args) {
         int cmd=ctrl_packet->getCommand();
         //连接断开事件通知给连接管理器处理
         if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
-            tbnet::Socket* socket=(tbnet::Socket* )args;
-            //通知连接无效
+/*            tbnet::Socket* socket=(tbnet::Socket* )args;
+            //通知到业务服务连接断开
+            //暂时LoadConnectionManager管理
             //pending call
             //needing post in pri task queue
-            conn_manager_to_srv_->DisToReConnect(socket->getId());
+            conn_manager_to_srv_->DisToReConnect(socket->getId());*/
+            assert(false);
             return IPacketHandler::FREE_CHANNEL;
         } else if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
             packet->set_args(args);

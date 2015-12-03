@@ -25,7 +25,7 @@ class LoadConnectionManager:public tbnet::IPacketHandler {
 public:
     LoadConnectionManager(tbnet::Transport* transport, 
         tbnet::IPacketStreamer *streamer, 
-        tbnet::IPacketHandler *packetHandler);
+        tbnet::IPacketHandler *packetHandler=NULL);
     ~LoadConnectionManager();
 
     //IPacketHandler
@@ -34,10 +34,12 @@ public:
     tbnet::IPacketHandler::HPRetCode 
     handlePacket(tbnet::Packet *packet, void *args);
 
+    //增加连接
     tbnet::Connection *connect(uint64_t serverId, 
         bool autoConn=false);
-    //server_id断开不重连，从依赖的后端服务移出
+    //移除连接
     void disconnect(uint64_t serverId);
+
     void setDefaultQueueLimit(int queueLimit);
     void setDefaultQueueTimeout(int queueTimeout);
     void cleanup();
@@ -59,14 +61,20 @@ private:
     int _queueTimeout;
     int _status;
 
-    TBNET_CONN_MAP _connectMap;
-//    tbsys::CThreadMutex _mutex;
-    std::vector<uint64_t> server_id_;
-    atomic_t last_server_id_index_;
-    tbsys::CRWSimpleLock rw_simple_lock_;
+    //连接状态
+    //disconnect --> connect --> register --> send
+    //--> timeout
+    //--> disconnect
+    //发送连接
+    TBNET_CONN_MAP send_conn_map_;
+    std::vector<uint64_t> send_server_id_;
+    atomic_t last_send_server_id_index_;
+    tbsys::CRWSimpleLock send_conn_rw_lock_;
 
-    std::vector<uint64_t> reconn_server_id_;
-    tbsys::CThreadMutex reconn_mutex_;
+    //建立连接
+    std::vector<uint64_t> reconn_server_id_; //重连队列
+    std::vector<uint64_t> inconn_server_id_; //正在连接队列（注册srv_id）
+    tbsys::CThreadMutex create_conn_mutex_; //建立连接共享锁
 };
 
 }
