@@ -1,11 +1,12 @@
-#include "pakcet_handler_to_server.hpp"
+#include "packet_handler_to_server.hpp"
 #include "connection_manager_to_server.hpp"
 
 namespace lljz {
 namespace disk {
 
 bool PacketHandlerToServer::start() {
-    int thread_count = TBSYS_CONFIG.getInt("server","to_server_work_thread_count",4);
+    int thread_count = TBSYS_CONFIG.getInt(
+        "server","to_server_work_thread_count",4);
     task_queue_thread_.setThreadParameter(thread_count,this,NULL);
     task_queue_thread_.start();
 }
@@ -34,8 +35,10 @@ tbnet::Packet *packet, void *args) {
             assert(false);
             return IPacketHandler::FREE_CHANNEL;
         } else if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
-            packet->set_args(args);
-            task_queue_thread_.push(packet);
+            //ctrl packet does not have set_args
+            //packet->set_args(args);
+            //task_queue_thread_.push(packet);
+            //ignore timeout get server url
         } else {
             assert(false);
         }

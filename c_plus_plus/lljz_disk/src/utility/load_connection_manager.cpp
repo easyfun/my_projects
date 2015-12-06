@@ -203,11 +203,8 @@ void *args, bool noblocking) {
         }
         conn=it->second;
 
-        if (conn->postPacket(
-            packet,
-            packetHandler,
-            args,
-            noblocking)) {
+        if (conn->postPacket(packet,
+            packetHandler,args,noblocking)) {
             ret=true;
             break;
         }
@@ -331,9 +328,8 @@ void LoadConnectionManager::CheckReconnect() {
         }
         req=new RequestPacket;
         if (false == conn->postPacket(req,
-                            this,
-                            conn,
-                            false)) {
+            this,conn,false)) {
+            _transport->disconnect(conn);
             delete req;
             i++;
             continue;
@@ -379,7 +375,7 @@ tbnet::Packet *packet, void *args) {
                 send_conn_rw_lock_.unlock();
             }
             if (!have) {
-                /*TCPComponent* tcpc=(TCPComponent* )socket->getIOComponent();
+                / * TCPComponent* tcpc=(TCPComponent* )socket->getIOComponent();
                 conn=tcpc->getConnection();
                 _transport->disconnect(conn);* /
                 //15min延迟释放
@@ -408,7 +404,7 @@ tbnet::Packet *packet, void *args) {
                 send_conn_rw_lock_.unlock();
             }
             if (!have) {
-                /*TCPComponent* tcpc=(TCPComponent* )socket->getIOComponent();
+                / * TCPComponent* tcpc=(TCPComponent* )socket->getIOComponent();
                 conn=tcpc->getConnection();
                 _transport->disconnect(conn);* /
                 //15min延迟释放

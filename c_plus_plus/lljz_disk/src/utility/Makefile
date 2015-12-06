@@ -14,14 +14,17 @@ PROJECT_INC=-I../packets
 VPATH=../packets
 
 EXE_OBJ=client.o
-OUTPUT_PATH=./
+OUTPUT_PATH=.
 
-BUILD=load_connection_manager.o
+BUILD=packet_handler_to_server.o
 
 load_connection_manager.o:load_connection_manager.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ $(TBSDK_INC) $(PROJECT_INC)
 
 connection_manager_to_server.o:connection_manager_to_server.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ $(TBSDK_INC) $(PROJECT_INC)
+
+packet_handler_to_server.o:packet_handler_to_server.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ $(TBSDK_INC) $(PROJECT_INC)
 
 all:$(BUILD)

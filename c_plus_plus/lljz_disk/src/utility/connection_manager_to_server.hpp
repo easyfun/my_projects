@@ -33,7 +33,8 @@ public:
     //IPacketHandler interface
     //discard disconnect with config_server
     //autoly reconnect to config_server
-    tbnet::HPRetCode handlePacket(tbnet::Packet *packet, void *args);
+    tbnet::HPRetCode handlePacket(tbnet::Packet *packet, 
+        void *args);
     bool start();
     bool stop();
     bool wait();
@@ -49,17 +50,16 @@ public:
         tbnet::Packet* packet, 
         void* args=NULL);
 
+/*
     //server_id断开自动重连
     void DisToReConnect(uint64_t server_id);
-
+*/
     //从配置服务器获取服务列表
     bool GetServiceListResp(tbnet::Packet * apacket, void *args);
 
 private:
     tbnet::Transport* transport_;
     tbnet::IPacketStreamer* packet_streamer_;
-    //business proc
-    tbnet::IPacketHandler* packet_handler_;
 
     PacketHandlerToServer packet_handler_to_server_;
 
@@ -80,8 +80,10 @@ private:
     std::vector<ServerURL*> server_url_;
 
     //server_type---LoadConnectionManager*
-    __gnu_cxx::hash_map<uint16_t,LoadConnectionManager*> conn_manager_;
-    tbsys::CThreadMutex mutex_;
+    __gnu_cxx::hash_map<uint16_t,
+        LoadConnectionManager*> conn_manager_;
+//    tbsys::CThreadMutex mutex_;
+    tbsys::CRWSimpleLock conn_manager_rw_lock_;
 
 };
 
