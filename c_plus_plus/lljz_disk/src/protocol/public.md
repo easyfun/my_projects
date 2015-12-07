@@ -29,6 +29,6 @@ tbnet的packet的包体再次划分包头，包体
     uint32_t msg_id_;   //消息id
     //请求id，继承自Packet::_packetHeader._chid
     //uint32_t version_;  //消息版本号
-    uint32_t error_code; //错误码
+    uint32_t error_code_; //错误码
     char data_[RESPONSE_PACKET_MAX_SIZE]; //
 

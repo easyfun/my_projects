@@ -23,7 +23,8 @@ public:
     }
 
     //IPacketHandler interface
-    tbnet::HPRetCode handlePacket(Packet *packet, void *args);
+    tbnet::IPacketHandler::HPRetCode 
+    handlePacket(tbnet::Packet *packet, void *args);
 
     // IPacketQueueHandler interface
     bool handlePacketQueue(tbnet::Packet * apacket, void *args);

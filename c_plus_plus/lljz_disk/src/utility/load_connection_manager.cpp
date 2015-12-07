@@ -76,7 +76,7 @@ uint64_t serverId,bool autoConn) {
     conn->setQueueLimit(_queueLimit);
     conn->setQueueTimeout(_queueTimeout);
 
-    RequestPacket* req=new RequestPacket;
+    RequestPacket* req=new RequestPacket();
     if (conn->postPacket(req,
                         this,
                         (void*)conn,
@@ -326,7 +326,7 @@ void LoadConnectionManager::CheckReconnect() {
             i++;
             continue;
         }
-        req=new RequestPacket;
+        req=new RequestPacket();
         if (false == conn->postPacket(req,
             this,conn,false)) {
             _transport->disconnect(conn);
@@ -424,7 +424,7 @@ tbnet::Packet *packet, void *args) {
         if (inconn_server_id_[i]!=conn->getServerId()) {
             continue;
         }
-        if (0==resp->error_code) {
+        if (0==resp->error_code_) {
             server_id=inconn_server_id_[i];
             inconn_server_id_.erase(inconn_server_id_.begin()+i);
             conn_ok=true;

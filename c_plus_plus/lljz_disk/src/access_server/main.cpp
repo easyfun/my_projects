@@ -4,16 +4,16 @@
 #include <stdlib.h>
 #include <tbsys.h>
 #include <tbnet.h>
-#include "config_server.hpp"
+#include "access_server.hpp"
 
-lljz::disk::ConfigServer* cfg_svr = NULL;
+lljz::disk::AccessServer* access_srv = NULL;
 
 void sign_handler(int sig) {
   switch (sig) {
   case SIGTERM:
   case SIGINT:
-    if(cfg_svr != NULL) {
-      cfg_svr->Stop();
+    if(access_srv != NULL) {
+      access_srv->Stop();
     }
     break;
   case 40:
@@ -27,8 +27,7 @@ void sign_handler(int sig) {
     else {
       TBSYS_LOGGER._level--;
     }
-    TBSYS_LOG(INFO,"TBSYS_LOGGER._level: %d", 
-      TBSYS_LOGGER._level);
+    TBSYS_LOG(INFO,"TBSYS_LOGGER._level: %d", TBSYS_LOGGER._level);
     break;
   }
 }
@@ -67,16 +66,16 @@ int main(int argc, char *argv[])
   // parse cmd
   parse_cmd_line(argc, argv);
   char config_file[64];
-  sprintf(config_file,"%s","./config_server.ini");
+  sprintf(config_file,"%s","./access_server.ini");
   if(TBSYS_CONFIG.load(config_file)) {
     fprintf(stderr, "load file %s error\n", config_file);
     return EXIT_FAILURE;
   }
 
   const char* sz_pid_file = TBSYS_CONFIG.getString(
-    "server", "pid_file", "config_server.pid");
+    "server", "pid_file", "access_server.pid");
   const char* sz_log_file = TBSYS_CONFIG.getString(
-    "server", "log_file", "config_server.log");
+    "server", "log_file", "access_server.log");
   if(1) {
     char* p, dir_path[256];
     sprintf(dir_path, "%s", sz_pid_file);
@@ -101,14 +100,15 @@ int main(int argc, char *argv[])
   if((pid = tbsys::CProcess::existPid(sz_pid_file))) {
     fprintf(stderr, "program has been exist: pid=%d\n", pid);
     return EXIT_FAILURE;
-  }*/
+  }
+*/
 
   const char* sz_log_level = TBSYS_CONFIG.getString(
     "server", "log_level", "info");
   TBSYS_LOGGER.setLogLevel(sz_log_level);
-  TBSYS_LOG(DEBUG,"test_log_level=%s",sz_log_level);
 
-  /*if(tbsys::CProcess::startDaemon(sz_pid_file, sz_log_file) == 0)*/ {
+
+/*  if(tbsys::CProcess::startDaemon(sz_pid_file, sz_log_file) == 0)*/ {
     signal(SIGPIPE, SIG_IGN);
     signal(SIGHUP, SIG_IGN);
     signal(SIGINT, sign_handler);
@@ -117,15 +117,15 @@ int main(int argc, char *argv[])
     signal(41, sign_handler);
     signal(42, sign_handler);
 
-    cfg_svr = new lljz::disk::ConfigServer();
-    cfg_svr->Start();
+    access_srv = new lljz::disk::AccessServer();
+    access_srv->Start();
 
-    // ignore signal when destroy, cause sig_handler may use cfg_svr between delete and set it to NULL.
+    // ignore signal when destroy, cause sig_handler may use access_srv between delete and set it to NULL.
     signal(SIGINT, SIG_IGN);
     signal(SIGTERM, SIG_IGN);
 
-    delete cfg_svr;
-    cfg_svr = NULL;
+    delete access_srv;
+    access_srv = NULL;
 
     TBSYS_LOG(ERROR,"%s\n","exit program.");
   }

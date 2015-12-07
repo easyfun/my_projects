@@ -6,6 +6,7 @@
 #include "tbnet.h"
 #include "load_connection_manager.hpp"
 #include "packet_handler_to_server.hpp"
+#include "global.h"
 
 namespace lljz {
 namespace disk {
@@ -33,8 +34,8 @@ public:
     //IPacketHandler interface
     //discard disconnect with config_server
     //autoly reconnect to config_server
-    tbnet::HPRetCode handlePacket(tbnet::Packet *packet, 
-        void *args);
+    tbnet::IPacketHandler::HPRetCode 
+        handlePacket(tbnet::Packet *packet, void *args);
     bool start();
     bool stop();
     bool wait();
@@ -50,18 +51,18 @@ public:
         tbnet::Packet* packet, 
         void* args=NULL);
 
-/*
     //server_id断开自动重连
     void DisToReConnect(uint64_t server_id);
-*/
+
     //从配置服务器获取服务列表
     bool GetServiceListResp(tbnet::Packet * apacket, void *args);
 
 private:
     tbnet::Transport* transport_;
     tbnet::IPacketStreamer* packet_streamer_;
-
-    PacketHandlerToServer packet_handler_to_server_;
+    IBusinessPacketHandler* business_packet_handler_;
+    //business proc
+    PacketHandlerToServer* packet_handler_to_server_;
 
     //当前服务器服务配置
     uint16_t self_server_type_;
@@ -82,8 +83,7 @@ private:
     //server_type---LoadConnectionManager*
     __gnu_cxx::hash_map<uint16_t,
         LoadConnectionManager*> conn_manager_;
-//    tbsys::CThreadMutex mutex_;
-    tbsys::CRWSimpleLock conn_manager_rw_lock_;
+    tbsys::CThreadMutex mutex_;
 
 };
 

@@ -40,7 +40,9 @@ namespace disk {
 //server type
 enum {
    SERVER_TYPE_CONFIG_SERVER=0x0001,   //配置服务
-   SERVER_TYPE_ACCESS_SERVER=0x0002    //接入服务
+   SERVER_TYPE_ACCESS_SERVER=0x0002,   //接入服务
+
+   SERVER_TYPE_CLIENT_LINUX=0X0100,    //linux客户端
 };
 
 //config_server-获取服务列表
@@ -60,6 +62,7 @@ enum {
          connection_ = NULL;
          args_=NULL;
          direction_ = DIRECTION_SEND;
+         no_free_=false;
          recv_time_ = 0;
       }
 
@@ -67,7 +70,7 @@ enum {
       }
 
       // Connection
-      tbnet::Connection* get_gonnection() {
+      tbnet::Connection* get_connection() {
          return connection_;
       }
 
@@ -104,13 +107,14 @@ enum {
       }
 
       void free() {
-         if (!no_free) {
+         TBSYS_LOG(TRACE,"BasePacket::free:addr=%u,no_free_=%d",this,no_free_);
+         if (!no_free_) {
             delete this;
          }
       }
 
       void set_no_free() {
-         no_free = true;
+         no_free_ = true;
       }
 
    private:
@@ -119,7 +123,7 @@ enum {
       tbnet::Connection *connection_;
       int direction_;
       void* args_;//作为客户端，handlePacket(,args)
-      bool no_free;
+      bool no_free_;
 
    protected:
       int64_t recv_time_;

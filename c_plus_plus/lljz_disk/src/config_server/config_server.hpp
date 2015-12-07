@@ -4,9 +4,23 @@
 #include "tbsys.h"
 #include "tbnet.h"
 #include "packet_factory.hpp"
+#include "global.h"
 
 namespace lljz {
 namespace disk {
+
+struct ServerURLInfo {
+    char spec_[100];
+    uint32_t server_type_;
+    uint32_t server_id_;
+    int64_t last_use_time_;//有效期180s
+
+    ServerURLInfo() {
+        memset(this,0,sizeof(ServerURLInfo));
+    }
+};
+
+typedef __gnu_cxx::hash_map<uint64_t,ServerURLInfo*> SrvURLInfoMap;
 
 class ConfigServer : public tbnet::IServerAdapter,
     public tbnet::IPacketQueueHandler {
@@ -18,7 +32,8 @@ public:
     void Stop();
 
     //IServerAdapter interface
-    virtual tbnet::IPacketHandler::HPRetCode handlePacket(tbnet::Connection *connection, tbnet::Packet *packet);
+    virtual tbnet::IPacketHandler::HPRetCode 
+    handlePacket(tbnet::Connection *connection, tbnet::Packet *packet);
 
     // IPacketQueueHandler interface
     bool handlePacketQueue(tbnet::Packet * apacket, void *args);
@@ -37,6 +52,9 @@ private:
 //    server_conf_thread my_server_conf_thread_;
     int64_t disconnThrowPackets_;   // 连接失效丢弃的请求包数
     int64_t timeoutThrowPackets_;   // 排队超时丢弃的请求包数
+
+    SrvURLInfoMap server_url_;
+    tbsys::CThreadMutex mutex_;
 };
 
 }

@@ -26,7 +26,7 @@ bool RegisterConnection::RegisterConnection(tbnet::Connection* connection) {
     if (!connection->isConnectState())
         return false;
 
-    connInfo=new ConnectionInfo;
+    connInfo=new ConnectionInfo();
     connInfo->connection_=connection;
     connInfo->state_=true;
     connInfo->addCount();

@@ -12,7 +12,6 @@ namespace disk {
 
 class AccessServer : public tbnet::IServerAdapter,
 public tbnet::IPacketQueueHandler,
-public tbnet::IPacketHandler,
 public IBusinessPacketHandler {
 public:
     AccessServer();
