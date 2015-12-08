@@ -4,6 +4,8 @@
 Map 500条记录
 1000连接，100000次请求
 6000笔/秒
+
+jsoncpp比rapidjson差至少3部的性能
 */
 
 #ifndef LLJZ_DISK_CONFIG_SERVER_H_
