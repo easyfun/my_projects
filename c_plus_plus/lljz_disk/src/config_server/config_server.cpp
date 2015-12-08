@@ -1,9 +1,13 @@
 #include "config_server.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
-#include "json/json.h"
+//#include "json/json.h"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
-using namespace tbnet;
+//using namespace tbnet;
+using namespace rapidjson;
 
 namespace lljz {
 namespace disk {
@@ -64,7 +68,7 @@ tbnet::Connection *connection, tbnet::Packet *packet) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
             ((tbnet::ControlPacket* )packet)->getCommand());
 
-        return IPacketHandler::FREE_CHANNEL;
+        return tbnet::IPacketHandler::FREE_CHANNEL;
     }
 
     RequestPacket *req = (RequestPacket *) packet;
@@ -119,6 +123,92 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 resp->dest_id_=req->src_id_;
                 resp->error_code_=0;
 
+                //rapidjson
+                Document document;
+                document.Parse(req->data_);
+
+                uint64_t srv_id=document["srv_id"].GetUint64();
+                TBSYS_LOG(DEBUG,"srv_id=%llu",srv_id);
+                if (0==srv_id) {
+                    TBSYS_LOG(DEBUG,"%s","error_code 3");
+                    resp->error_code_=3;
+                    if(conn->postPacket(resp) == false) {
+                        delete resp;
+                    }
+                    return true;
+                }
+
+                uint16_t srv_type=document["srv_type"].GetUint();
+
+                std::string spec=document["spec"].GetString();
+                if (spec.empty()) {
+                    TBSYS_LOG(DEBUG,"%s","error_code 4");
+                    resp->error_code_=4;
+                    if(conn->postPacket(resp) == false) {
+                        delete resp;
+                    }
+                    return true;
+                }
+
+                const Value& json_dep_srv_type=document["dep_srv_type"];
+
+                SrvURLInfoMap::iterator it;
+                ServerURLInfo* srv_url_info;
+                mutex_.lock();
+                it=server_url_.find(srv_id);
+                if (server_url_.end()==it) {
+                    srv_url_info=new ServerURLInfo();
+                } else {
+                    srv_url_info=it->second;
+                }
+                sprintf(srv_url_info->spec_,"%s",spec.c_str());
+                srv_url_info->server_type_=srv_type;
+                srv_url_info->server_id_=srv_id;
+                srv_url_info->last_use_time_=tbsys::CTimeUtil::getTime();
+                server_url_[srv_id]=srv_url_info;
+
+                int size=json_dep_srv_type.Size();
+                int total=0;
+                Document resp_doc;
+                Document::AllocatorType& allocator=resp_doc.GetAllocator();
+                Value resp_json(kObjectType);
+                Value resp_json_total(kNumberType);
+                Value resp_json_srv_info(kArrayType);
+
+                for (it=server_url_.begin();server_url_.end()!=it;it++) {
+                    for (int i=0;i<size;i++) {
+                        srv_url_info=it->second;
+                        if (srv_url_info->server_type_ !=
+                            json_dep_srv_type[i].GetUint()) {
+                            continue;
+                        }
+                        Value json_srv_url(kObjectType);
+                        Value json_spec(kStringType);
+                        Value json_srv_type(kNumberType);
+                        Value json_srv_id(kNumberType);
+                        json_spec.SetString(StringRef(srv_url_info->spec_));
+                        json_srv_type=srv_url_info->server_type_;
+                        json_srv_id=srv_url_info->server_id_;
+                        json_srv_url.AddMember("spec",json_spec,allocator);
+                        json_srv_url.AddMember("srv_type",json_srv_type,allocator);
+                        json_srv_url.AddMember("srv_id",json_srv_id,allocator);
+                        resp_json_srv_info.PushBack(json_srv_url,allocator);
+                        total++;
+                    }
+                }
+                mutex_.unlock();
+
+                resp_json_total=total;
+                resp_json.AddMember("total",resp_json_total,allocator);
+                resp_json.AddMember("srv_info",resp_json_srv_info, allocator);
+
+                StringBuffer resp_buffer;
+                Writer<StringBuffer> writer(resp_buffer);
+                resp_json.Accept(writer);
+                std::string resp_data=resp_buffer.GetString();
+                strcat(resp->data_,resp_data.c_str());
+/*                
+                //jsoncpp
                 Json::Value json_req_data_root;
                 Json::Reader reader;
 
@@ -206,6 +296,31 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 Json::FastWriter writer;
                 std::string resp_data=writer.write(json_resp_data);
                 strcat(resp->data_,resp_data.c_str());
+*/
+                TBSYS_LOG(DEBUG,"resp:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+                    "src_id=%u|dest_type=%u|dest_id=%u|data=%s",
+                    resp->getChannelId(),resp->getPCode(),resp->msg_id_,
+                    resp->src_type_,resp->src_id_,resp->dest_type_,
+                    resp->dest_id_,resp->data_);
+                
+                if(conn->postPacket(resp) == false) {
+                    delete resp;
+                }
+            } else if (CONFIG_SERVER_ECHO_TEST_REQ==req->msg_id_) {
+                ResponsePacket *resp = new ResponsePacket();
+                if (NULL==resp) {
+                    TBSYS_LOG(DEBUG,"%s","memmory is not enough");
+                    return true;
+                }
+                mutex_.lock();
+                resp->setChannelId(req->getChannelId());
+                resp->msg_id_=CONFIG_SERVER_ECHO_TEST_RESP;
+                resp->src_type_=SERVER_TYPE_CONFIG_SERVER;
+                resp->src_id_=req->dest_id_;
+                resp->dest_type_=req->src_type_;
+                resp->dest_id_=req->src_id_;
+                resp->error_code_=0;
+                strcat(resp->data_,req->data_);
 
                 TBSYS_LOG(DEBUG,"resp:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
                     "src_id=%u|dest_type=%u|dest_id=%u|data=%s",
@@ -214,9 +329,11 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                     resp->dest_id_,resp->data_);
                 
                 if(conn->postPacket(resp) == false) {
-                        delete resp;
+                    delete resp;
                 }
+                mutex_.unlock();
             }
+
         }
         break;
 

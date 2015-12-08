@@ -24,7 +24,7 @@ public:
     }
 
     ~ResponsePacket() {
-        TBSYS_LOG(TRACE,"ResponsePacket::~ResponsePacket, addr=%u",this);
+//        TBSYS_LOG(TRACE,"ResponsePacket::~ResponsePacket, addr=%u",this);
     }
 
     bool encode(tbnet::DataBuffer *output) {

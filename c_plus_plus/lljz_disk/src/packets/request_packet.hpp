@@ -23,7 +23,7 @@ public:
     }
 
     ~RequestPacket() {
-        TBSYS_LOG(TRACE,"RequestPacket::~RequestPacket, addr=%u",this);
+//        TBSYS_LOG(TRACE,"RequestPacket::~RequestPacket, addr=%u",this);
     }
 
     bool encode(tbnet::DataBuffer *output) {

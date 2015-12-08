@@ -18,6 +18,10 @@ TBSDK_LIB=$(TBSDK_LIBRARY_PATH)/lib/libtbnet.a $(TBSDK_LIBRARY_PATH)/lib/libtbsy
 TBSDK_INC = -I$(TBSDK_LIBRARY_PATH)/include
 JSONCPP_INC=-I/home/lljz/projects/jsoncpp-master/include
 JSONCPP_LIB=/home/lljz/projects/jsoncpp-master/libs/linux-gcc-4.9.2/libjson_linux-gcc-4.9.2_libmt.a
+RAPIDJSON_INC=-I/home/lljz/my_projects/rapidjson/include
+RAPIDJSON_LIB=
+JSON_INC=$(RAPIDJSON_INC)
+JSON_LIB=$(RAPIDJSON_LIB)
 
 PROJECT_INC=-I../packets -I../protocol -I../utility
 VPATH=../packets ../utility
@@ -28,7 +32,7 @@ OUTPUT_PATH=../../output/test_client
 client:client.cpp
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
 	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
-	$(JSONCPP_INC) $(JSONCPP_LIB) -lpthread -lrt
+	$(JSON_INC) $(JSON_LIB) -lpthread -lrt
 
 #test_client:$(EXE_OBJ)
 #	cd $(OUTPUT_PATH) && $(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ $(TBSDK_INC) $(TBSDK_LIB) -lpthread -lrt

@@ -14,19 +14,24 @@
  */
 
 #include "tbnet.h"
-#include "json/json.h"
+//#include "json/json.h"
 #include "base_packet.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
 #include "packet_factory.hpp"
+#include "rapidjson/document.h"
+#include "rapidjson/stringbuffer.h"
+#include "rapidjson/writer.h"
 
 using namespace lljz::disk;
 using namespace tbnet;
+using namespace rapidjson;
 
 int gsendcount = 1000;
 int64_t gsendlen = 0;
 Transport transport;
-int encode_count = 0;
+atomic_t success_count;
+atomic_t fail_count;
 
 class TestClientPacketHandler : public IPacketHandler
 {
@@ -48,6 +53,7 @@ public:
                 return IPacketHandler::FREE_CHANNEL;
             } else if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
                 atomic_inc(&_count);
+                atomic_inc(&fail_count);
                 TBSYS_LOG(DEBUG,"%s",
                     "TestClientPacketHandler::handlePacket:TIMEOUT");
             }
@@ -64,6 +70,16 @@ public:
         atomic_inc(&_count);
         req=(RequestPacket *)args;
         resp = (ResponsePacket*)packet;
+        if (0==resp->error_code_) {
+            atomic_inc(&success_count);
+            TBSYS_LOG(DEBUG,"resp:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+                "src_id=%u|dest_type=%u|dest_id=%u|data=%s",
+                resp->getChannelId(),resp->getPCode(),resp->msg_id_,
+                resp->src_type_,resp->src_id_,resp->dest_type_,
+                resp->dest_id_,resp->data_);
+        } else {
+            atomic_inc(&fail_count);
+        }
 //        printf("src_id=%u,dest_id=%u,data=%s\n",resp->src_id_,resp->dest_id_,resp->data_);
         if (_count.counter == gsendcount) {
             TBSYS_LOG(INFO, "OK=>_count: %d _timeoutCount: %d", _count.counter, _timeoutCount);        
@@ -116,11 +132,74 @@ void TestClient::start(int conncount)
             return;
         }
         cons[i]->setDefaultPacketHandler(&handler);
-        //cons[i]->setQueueTimeout(3000);
+        cons[i]->setQueueTimeout(180000);
         cons[i]->setQueueLimit(0);
     }
     transport.start();
 //    char buffer[4096] = "{\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}";
+
+    //rapidjson
+    Document doc_req;
+    Document::AllocatorType& allocator=doc_req.GetAllocator();
+    Value json_req(kObjectType);
+    Value json_spec(kStringType);
+    json_spec="tcp:127.0.0.1:10800";
+
+    Value json_srv_type(kNumberType);
+    json_srv_type=(uint)SERVER_TYPE_CLIENT_LINUX;
+
+    Value json_srv_id(kNumberType);
+    json_srv_id=10000;
+
+    Value json_dep_srv_type(kArrayType);
+    int size=10;
+    for (int i=0;i<size;i++) {
+        json_dep_srv_type.PushBack(i,allocator);
+    }
+    json_req.AddMember("spec",json_spec,allocator);
+    json_req.AddMember("srv_type",json_srv_type,allocator);
+    //json_req.AddMember("srv_id",json_srv_id,allocator);
+    json_req.AddMember("dep_srv_type",json_dep_srv_type,allocator);
+
+    std::string req_data;
+    int sendcount = 0;
+    int pid = getpid();
+    TBSYS_LOG(ERROR, "PID: %d", pid);
+    for(int i=0; i<gsendcount; i++) {
+        RequestPacket *packet = new RequestPacket();
+        TBSYS_LOG(DEBUG,"TestClient::start, addr=%u",packet);
+        packet->src_type_=SERVER_TYPE_CLIENT_LINUX;
+        packet->src_id_=10000+i;
+        packet->dest_type_=SERVER_TYPE_CONFIG_SERVER;
+        packet->dest_id_=0;
+        packet->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;//CONFIG_SERVER_ECHO_TEST_REQ;
+//        sprintf(packet->data_,"%s",buffer);
+
+        uint64_t server_id;
+        if (i<500) {
+           server_id=10000+i;
+        } else {
+           server_id=10000+i%500;
+        }
+        json_req.RemoveMember("srv_id");
+        json_srv_id=server_id;
+        json_req.AddMember("srv_id",json_srv_id,allocator);
+
+        StringBuffer req_buffer;
+        Writer<StringBuffer> writer(req_buffer);
+        json_req.Accept(writer);
+        std::string req_data=req_buffer.GetString();
+        strcat(packet->data_,req_data.c_str());
+
+        sendcount++;
+        if (!cons[i%conncount]->postPacket(packet, NULL, packet)) {
+            break;
+        }
+//        gsendlen += len;
+    }
+
+/*    
+    //jsoncpp
     Json::Value json_req;
     json_req["spec"]="tcp:127.0.0.1:10800";
     json_req["srv_type"]=SERVER_TYPE_CLIENT_LINUX;
@@ -148,7 +227,7 @@ void TestClient::start(int conncount)
         packet->src_id_=10000+i;
         packet->dest_type_=SERVER_TYPE_CONFIG_SERVER;
         packet->dest_id_=0;
-        packet->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;
+        packet->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;//CONFIG_SERVER_ECHO_TEST_REQ;
 //        sprintf(packet->data_,"%s",buffer);
 
         if (i<500) {
@@ -166,6 +245,8 @@ void TestClient::start(int conncount)
         }
 //        gsendlen += len;
     }
+*/
+
     gsendcount = sendcount;
     TBSYS_LOG(ERROR, "send finish.");
     transport.wait();
@@ -199,13 +280,17 @@ int main(int argc, char *argv[])
     int64_t startTime = tbsys::CTimeUtil::getTime();
     srand(time(NULL));
     TestClient testServer(argv[1]);
+
+    atomic_set(&success_count, 0);
+    atomic_set(&fail_count, 0);
+
     testServer.start(conncount);
     int64_t endTime = tbsys::CTimeUtil::getTime();
 
-    TBSYS_LOG(ERROR, "speed: %d tps, agv size: %d, encode_count: %d\n", 
+    TBSYS_LOG(ERROR, "speed: %d tps, agv size: %d, success_count: %d, fail_count=%d\n", 
         (int)((1000000LL * gsendcount)/(endTime-startTime)), 
         (int)(gsendlen/(gsendcount+1)), 
-        encode_count);
+        success_count.counter,fail_count.counter);
      
     TBNET_GLOBAL_STAT.log();
     

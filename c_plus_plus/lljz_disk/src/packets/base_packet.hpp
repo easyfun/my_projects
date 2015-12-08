@@ -34,21 +34,26 @@ namespace disk {
 #define PACKET_WAIT_FOR_SERVER_MAX_TIME 180000000
 
 //Packet type
-#define REQUEST_PACKET 0
-#define RESPONSE_PACKET 1
+enum {
+   REQUEST_PACKET=0,
+   RESPONSE_PACKET=1
+};
 
 //server type
 enum {
-   SERVER_TYPE_CONFIG_SERVER=0x0001,   //配置服务
-   SERVER_TYPE_ACCESS_SERVER=0x0002,   //接入服务
+   SERVER_TYPE_CONFIG_SERVER=1,   //配置服务
+   SERVER_TYPE_ACCESS_SERVER=2,   //接入服务
 
-   SERVER_TYPE_CLIENT_LINUX=0X0100,    //linux客户端
+   SERVER_TYPE_CLIENT_LINUX=1000,    //linux客户端
 };
 
 //config_server-获取服务列表
 enum {
-   CONFIG_SERVER_GET_SERVICE_LIST_REQ=0x0001,
-   CONFIG_SERVER_GET_SERVICE_LIST_RESP=0x0002
+   CONFIG_SERVER_GET_SERVICE_LIST_REQ=1,
+   CONFIG_SERVER_GET_SERVICE_LIST_RESP=2,
+
+   CONFIG_SERVER_ECHO_TEST_REQ=3,
+   CONFIG_SERVER_ECHO_TEST_RESP=4
 };
 
 enum {
@@ -107,7 +112,7 @@ enum {
       }
 
       void free() {
-         TBSYS_LOG(TRACE,"BasePacket::free:addr=%u,no_free_=%d",this,no_free_);
+//         TBSYS_LOG(TRACE,"BasePacket::free:addr=%u,no_free_=%d",this,no_free_);
          if (!no_free_) {
             delete this;
          }
