@@ -6,6 +6,10 @@ Map 500条记录
 6000笔/秒
 
 jsoncpp比rapidjson差至少3部的性能
+
+[TODO]
+1.注册新业务服务，推送
+2.心跳检查，踢掉不可用的服务，推送
 */
 
 #ifndef LLJZ_DISK_CONFIG_SERVER_H_
