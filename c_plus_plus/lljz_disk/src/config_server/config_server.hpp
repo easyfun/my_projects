@@ -1,3 +1,10 @@
+/*
+测试性能: 
+Map 500条记录
+1000连接，100000万次请求
+6000笔/秒
+*/
+
 #ifndef LLJZ_DISK_CONFIG_SERVER_H_
 #define LLJZ_DISK_CONFIG_SERVER_H_
 
