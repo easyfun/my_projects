@@ -30,8 +30,8 @@ using namespace std;
 namespace lljz {
 namespace disk {
 
-#define PACKET_IN_PACKET_QUEUE_THREAD_MAX_TIME 180000000
-#define PACKET_WAIT_FOR_SERVER_MAX_TIME 180000000
+#define PACKET_IN_PACKET_QUEUE_THREAD_MAX_TIME  180000000   //180s
+#define PACKET_WAIT_FOR_SERVER_MAX_TIME         180000000   //180s
 
 //Packet type
 enum {
@@ -43,18 +43,34 @@ enum {
 enum {
    SERVER_TYPE_CONFIG_SERVER=1,   //配置服务
    SERVER_TYPE_ACCESS_SERVER=2,   //接入服务
+   SERVER_TYPE_ACCOUNT_SERVER=3,  //账号服务
+   SERVER_TYPE_FILE_SERVER=4,    //文件服务器
 
-   SERVER_TYPE_CLIENT_LINUX=1000,    //linux客户端
+   SERVER_TYPE_CLIENT_LINUX=1000  //linux客户端
 };
 
-//config_server-获取服务列表
+//public
 enum {
-   CONFIG_SERVER_GET_SERVICE_LIST_REQ=1,
-   CONFIG_SERVER_GET_SERVICE_LIST_RESP=2,
+   //回显调试
+   PUBLIC_ECHO_TEST_REQ=0,
+   PUBLIC_ECHO_TEST_RESP=1,
 
-   CONFIG_SERVER_ECHO_TEST_REQ=3,
-   CONFIG_SERVER_ECHO_TEST_RESP=4
+   //注册
+   PUBLIC_REGISTER_REQ=2,
+   PUBLIC_REGISTER_RESP=3
 };
+
+//config_server
+enum {
+   //获取服务列表
+   CONFIG_SERVER_GET_SERVICE_LIST_REQ=1000,
+   CONFIG_SERVER_GET_SERVICE_LIST_RESP=1001
+};
+
+//account_server
+/*enum {
+};
+*/
 
 enum {
    DIRECTION_RECEIVE = 1,

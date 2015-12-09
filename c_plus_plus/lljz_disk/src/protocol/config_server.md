@@ -1,7 +1,7 @@
-功能模块:
-M:Msg_GetDependServerURLList
+功能模块:config_server
+M:CONFIG_SERVER_GET_SERVICE_LIST_REQ
 功能说明:获取依赖服务URL列表
-请求消息id:0x0001
+请求消息id:1000
 请求:
     {
         "spec":"tcp:ip:port",//自身url
@@ -9,7 +9,7 @@ M:Msg_GetDependServerURLList
         "srv_id":0,//自身ip|port标识，对所有业务服务唯一
         "dep_srv_type":[]//依赖服务类型
     }
-应答消息id:0x0002
+应答消息id:1001
 应答:
     {
         "total":1,

@@ -23,7 +23,7 @@ public:
         memset(data_,0,RESPONSE_PACKET_MAX_SIZE);
     }
 
-    ~ResponsePacket() {
+    virtual ~ResponsePacket() {
 //        TBSYS_LOG(TRACE,"ResponsePacket::~ResponsePacket, addr=%u",this);
     }
 

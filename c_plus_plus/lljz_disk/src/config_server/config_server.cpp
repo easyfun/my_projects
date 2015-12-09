@@ -306,7 +306,7 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 if(conn->postPacket(resp) == false) {
                     delete resp;
                 }
-            } else if (CONFIG_SERVER_ECHO_TEST_REQ==req->msg_id_) {
+            } else if (PUBLIC_ECHO_TEST_REQ==req->msg_id_) {
                 ResponsePacket *resp = new ResponsePacket();
                 if (NULL==resp) {
                     TBSYS_LOG(DEBUG,"%s","memmory is not enough");
@@ -314,7 +314,7 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 }
                 mutex_.lock();
                 resp->setChannelId(req->getChannelId());
-                resp->msg_id_=CONFIG_SERVER_ECHO_TEST_RESP;
+                resp->msg_id_=req->msg_id+1;
                 resp->src_type_=SERVER_TYPE_CONFIG_SERVER;
                 resp->src_id_=req->dest_id_;
                 resp->dest_type_=req->src_type_;

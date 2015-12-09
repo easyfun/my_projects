@@ -22,7 +22,7 @@ public:
         memset(data_,0,REQUEST_PACKET_MAX_SIZE);
     }
 
-    ~RequestPacket() {
+    virtual ~RequestPacket() {
 //        TBSYS_LOG(TRACE,"RequestPacket::~RequestPacket, addr=%u",this);
     }
 

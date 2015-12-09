@@ -8,53 +8,41 @@
 namespace lljz {
 namespace disk {
 
-struct ConnectionInfo {
-    tbnet::Connection* connection_;
-    bool state_;
-    atomic_t packetCount_; //收到Packet计数
-
-    ConnectionInfo() {
-        connection_=NULL;
-        state_=false;
-        atomic_set(&packetCount_,0);
-    }
-
-    int addCount() {
-        return atomic_add_return(1,&packetCount_);
-    }
-
-    void subCount() {
-        atomic_dec(&packetCount_);
-    }
-
-    int getCount() {
-        return atomic_read(&packetCount_);
-    }
-};
-
-class ConnectionManagerFromClient {
+typedef __gnu_cxx::hash_map<uint64_t,tbnet::Connection*> ConnFromClientMap;
+class ConnectionManagerFromClient:public tbsys::Runnable {
 public:
     ConnectionManagerFromClient();
     ~ConnectionManagerFromClient();
 
+    bool start();
+    bool stop();
+    bool wait();
+    void destroy();
+
+    //Runnable
+    void run(tbsys::CThread* thread, void* arg);
+    void CheckResend();
+
     //注册来自客户端的连接
     //用于推送
-    bool RegisterConnection(tbnet::Connection* connection);
-    
-    // 返回值无用
-    bool PostPacket(tbnet::Packet* packet);
+    int Register(uint64_t id, tbnet::Connection* conn);
+    bool IsRegister(uint64_t id);
+    void PostPacket(uint64_t id, tbnet::Packet* packet);
 
 
-public:
+
+private:
     //
-    __gnu_cxx::hash_map<tbnet::Connection*,ConnectionInfo*> connectionMap_;
-    tbsys::CThreadMutex connMapMutex_;
+    ConnFromClientMap conn_from_client_;
+    tbsys::CRWSimpleLock rw_lock_;
 
-    //chid到packet，暂存请求packet，内存开销
-    //给chid超时时间，实时释放请求packet，可能有冲突chid
-    //暂时牺牲空间,Connection*从pcket取
-    __gnu_cxx::hash_map<uint32_t,tbnet::Connection*> chidMap_;
-    tbsys::CThreadMutex chidMapMutex_;
+    //重发队列
+    PacketQueue resend_queue_;
+    tbsys::CThreadMutex mutex_;   
+
+    bool stop_;
+    tbsys::CThread timer_thread_;
+
 };
 
 

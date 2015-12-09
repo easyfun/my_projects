@@ -1,9 +1,15 @@
 #include "connection_manager_to_server.hpp"
-#include "json/json.h"
+//#include "json/json.h"
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
 #include "base_packet.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
 #include "global.h"
+
+using namespace rapidjson;
 
 namespace lljz {
 namespace disk {
@@ -140,6 +146,36 @@ void ConnectionManagerToServer::CheckConfigServer() {
     req->dest_id_=0;
     req->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;
 
+    //rapidjson
+    Document req_doc;
+    Document::AllocatorType& allocator=req_doc.GetAllocator();
+    Value req_json(kObjectType);
+    Value spec_json(kStringType);
+    spec_json=self_server_spec_;
+    req_json.AddMember("spec",spec_json,allocator);
+
+    Value srv_type_json(kNumberType);
+    srv_type_json=self_server_type_;
+    req_json.AddMember("srv_type",srv_type_json,allocator);
+
+    Value srv_id_json(kNumberType);
+    srv_id_json=self_server_id_;
+    req_json.AddMember("srv_id",srv_id_json,allocator);
+
+    Value dep_srv_type_json(kArrayType);
+    int size=depend_server_type_.size();
+    for (int i=0;i<size;i++) {
+        dep_srv_type_json.PushBack(depend_server_type_[i]);
+    }
+
+    StringBuffer req_buffer;
+    Writer<StringBuffer> writer(req_buffer);
+    req_json.Accept(writer);
+    std::string req_data=req_buffer.GetString();
+    strcat(req->data_,req_data.c_str());
+
+/*
+    //jsoncpp
     Json::Value json_req;
     json_req["spec"]=self_server_spec_;
     json_req["srv_type"]=self_server_type_;
@@ -157,15 +193,14 @@ void ConnectionManagerToServer::CheckConfigServer() {
     Json::FastWriter writer;
     std::string req_data=writer.write(json_req);
     strcat(req->data_,req_data.c_str());
-
+*/
     if (false==conn_to_config_server_->postPacket(req,
         packet_handler_to_server_,req)) {
         TBSYS_LOG(DEBUG,"%s",
             "ConnectionManagerToServer::CheckConfigServer:"
             "postPacket error");
         delete req;
-    }
-    
+    }    
 }
 
 void ConnectionManagerToServer::CheckReconnServer() {
@@ -278,6 +313,54 @@ tbnet::Packet * apacket, void *args) {
     std::vector<ServerURL*> buff_server_url;
     bool server_changed;
 
+    //rapidjson
+    Document resp_doc;
+    resp_doc.Parse(resp->data_);
+
+    int size=resp_doc["total"].GetInt();
+    mutex_.lock();
+    int svr_url_size=server_url_.size();
+
+    server_changed=false;
+    //server_url_ check remove
+    int i,j;
+    for (i=0;i<svr_url_size;i++) {
+        for (j=0;j<size;j++) {
+            spec=resp_doc["srv_info"][j]["spec"].GetString();
+            if (0==strcmp(server_url_[i]->spec_,spec.c_str())) {
+                break;
+            }
+        }
+        if (j==size) {
+            server_url_[i]->changed_=2;
+            server_changed=true;
+        }
+    }
+
+    //server_url_ check add
+    for (i=0;i<size;i++) {
+        spec=resp_doc["srv_info"][i]["spec"].GetString();
+        server_type=resp_doc["srv_info"][i]["server_type"].GetInt();
+        server_id=resp_doc["srv_info"][i]["server_id"].GetInt();
+
+        for (j=0;j<svr_url_size;j++) {
+            if (0==strcmp(server_url_[j]->spec_, spec.c_str())) {
+                break;
+            }
+        }
+        
+        if (j==svr_url_size) {
+            ServerURL* svr_url=new ServerURL();
+            strcat(svr_url->spec_,spec.c_str());
+            svr_url->server_type_=server_type;
+            svr_url->server_id_=server_id;
+            svr_url->changed_=1;
+            buff_server_url.push_back(svr_url);
+            server_changed=true;
+        }
+    }    
+/*
+    //jsoncpp
     Json::Value json_data_root;
     Json::Reader reader;
     if (!reader.parse(resp->data_, json_data_root, false)) {
@@ -325,8 +408,8 @@ tbnet::Packet * apacket, void *args) {
             server_changed=true;
         }
     }
+*/
 
-    mutex_.lock();
     size=buff_server_url.size();
     for (i=0;i<size;i++) {
         server_url_.push_back(buff_server_url[i]);

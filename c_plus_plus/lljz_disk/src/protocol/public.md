@@ -32,3 +32,20 @@ tbnet的packet的包体再次划分包头，包体
     uint32_t error_code_; //错误码
     char data_[RESPONSE_PACKET_MAX_SIZE]; //
 
+
+功能模块:public
+M:PUBLIC_REGISTER_REQ
+功能说明:注册服务
+请求消息id:2
+请求:
+    srv_id_
+应答消息id:3
+应答:
+    error_code_=0
+备注:
+
+
+错误号
+0 成功
+-1 服务已注册
+-2 服务未注册
