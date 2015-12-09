@@ -63,6 +63,9 @@ bool ConnectionManagerToServer::start() {
         return false;
     }
 
+    depend_server_type_=TBSYS_LOG.getIntList(
+        "server","depend_server_type");
+
     conn_to_config_server_=transport_->connect(
         config_server_spec_,packet_streamer_,true);
     if (NULL==conn_to_config_server_) {
