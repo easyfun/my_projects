@@ -46,7 +46,8 @@ enum {
    SERVER_TYPE_ACCOUNT_SERVER=3,  //账号服务
    SERVER_TYPE_FILE_SERVER=4,    //文件服务器
 
-   SERVER_TYPE_CLIENT_LINUX=1000  //linux客户端
+   SERVER_TYPE_CLIENT_LINUX=1000,  //linux客户端
+   SERVER_TYPE_PYTHON_CLIENT_LINUX=1001  //linux python客户端
 };
 
 //public
