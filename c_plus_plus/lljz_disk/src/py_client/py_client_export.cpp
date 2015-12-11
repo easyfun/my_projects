@@ -31,6 +31,15 @@ namespace disk {
 PyClient g_py_client;
 
 bool Init() {
+    char config_file[64];
+    sprintf(config_file,"%s","./py_client.ini");
+    if(TBSYS_CONFIG.load(config_file)) {
+        fprintf(stderr, "load file %s error\n", config_file);
+        return false;
+    }
+    const char* sz_log_level = TBSYS_CONFIG.getString(
+        "server", "log_level", "info");
+    TBSYS_LOGGER.setLogLevel(sz_log_level);
     g_py_client.start();
     return true;
 }
@@ -55,9 +64,11 @@ std::string Send(uint64_t conn_id, std::string req_str) {
     return g_py_client.Send(conn_id, req_str);
 }
 
+/*
 std::string SendOnce(std::string req) {
     return g_py_client.Send(req);
 }
+*/
 
 BOOST_PYTHON_MODULE(py_client) {
     boost::python::def("Init", Init);
@@ -74,10 +85,10 @@ BOOST_PYTHON_MODULE(py_client) {
     
     boost::python::def("Send", Send,
         (boost::python::arg("conn_id"),"req_str"));
-
+/*
     boost::python::def("SendOnce", SendOnce,
         boost::python::arg("req"));
-
+*/
 }
 
 }

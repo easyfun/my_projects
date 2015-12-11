@@ -146,6 +146,7 @@ uint64_t conn_id, std::string req_str) {
     Writer<StringBuffer> writer(resp_buffer);
 
     Value resp_json(kObjectType);
+    Value resp_json_function_return(kStringType);
     Value resp_json_src_type(kNumberType);
     Value resp_json_src_id(kNumberType);
     Value resp_json_dest_type(kNumberType);
@@ -162,23 +163,32 @@ uint64_t conn_id, std::string req_str) {
     req_packet->dest_id_=req_doc["dest_id"].GetUint64();
     req_packet->version_=req_doc["version"].GetInt();
     req_packet->msg_id_=req_doc["msg_id"].GetInt();
-    std::string tmp_str=req_doc["data"].GetString();
+
+    StringBuffer tmp_buffer;
+    Writer<StringBuffer> tmp_writer(tmp_buffer);
+    req_doc["data"].Accept(tmp_writer);
+    std::string tmp_str=tmp_buffer.GetString();//req_doc["data"].GetString();
     sprintf(req_packet->data_,"%s",tmp_str.c_str());
 
+    resp_json_function_return="";
     resp_json_src_type=req_packet->dest_type_;
     resp_json_src_id=req_packet->dest_id_;
     resp_json_dest_type=req_packet->src_type_;
     resp_json_dest_id=req_packet->src_id_;
     resp_json_msg_id=req_packet->msg_id_+1;
     resp_json_error_code=0;
+    resp_json_data="";
 
     mutex_.lock();
     it=conn_map_.find(conn_id);
     if (conn_map_.end()==it) {
+        TBSYS_LOG(DEBUG,"conn_id invalid, conn_id=%llu",conn_id);
         mutex_.unlock();
         delete req_packet;
 
-        resp_json_error_code=1;
+        resp_json_function_return="conn_id invalid";
+        resp_json.AddMember("function_return",
+            resp_json_function_return,resp_allocator);
         resp_json.AddMember("src_type",resp_json_src_type,resp_allocator);
         resp_json.AddMember("src_id",resp_json_src_id,resp_allocator);
         resp_json.AddMember("dest_type",resp_json_dest_type,resp_allocator);
@@ -195,9 +205,12 @@ uint64_t conn_id, std::string req_str) {
     mutex_.unlock();
 
     if (NULL==conn) {
+        TBSYS_LOG(DEBUG,"conn_id invalid, conn_id=%llu",conn_id);
         delete req_packet;
 
-        resp_json_error_code=1;
+        resp_json_function_return="conn_id invalid";
+        resp_json.AddMember("function_return",
+            resp_json_function_return,resp_allocator);
         resp_json.AddMember("src_type",resp_json_src_type,resp_allocator);
         resp_json.AddMember("src_id",resp_json_src_id,resp_allocator);
         resp_json.AddMember("dest_type",resp_json_dest_type,resp_allocator);
@@ -213,13 +226,17 @@ uint64_t conn_id, std::string req_str) {
     ConnectCond conn_cond;
     conn_cond.cond_.lock();
     conn_cond.send_=0;
+    conn_cond.conn_=conn;
     if (false == conn_cond.conn_->postPacket(
                     req_packet,NULL,&conn_cond)) {
+        TBSYS_LOG(DEBUG,"postPacket fail, conn_id=%llu",conn_id);
         conn_cond.cond_.unlock();
         delete req_packet;
         transport_.disconnect(conn);
 
-        resp_json_error_code=3;
+        resp_json_function_return="postPacket fail";
+        resp_json.AddMember("function_return",
+            resp_json_function_return,resp_allocator);
         resp_json.AddMember("src_type",resp_json_src_type,resp_allocator);
         resp_json.AddMember("src_id",resp_json_src_id,resp_allocator);
         resp_json.AddMember("dest_type",resp_json_dest_type,resp_allocator);
@@ -238,12 +255,15 @@ uint64_t conn_id, std::string req_str) {
     conn_cond.cond_.unlock();
 
     if (2==conn_cond.send_) {
-        resp_json_error_code=5;//发送超时
+        resp_json_function_return="send timeout";//发送超时
     } else {
         resp_json_error_code=conn_cond.resp_.error_code_;
     }
+
     resp_json_data.SetString(conn_cond.resp_.data_, 
         strlen(conn_cond.resp_.data_),resp_allocator);
+    resp_json.AddMember("function_return",
+        resp_json_function_return,resp_allocator);
     resp_json.AddMember("src_type",resp_json_src_type,resp_allocator);
     resp_json.AddMember("src_id",resp_json_src_id,resp_allocator);
     resp_json.AddMember("dest_type",resp_json_dest_type,resp_allocator);
@@ -253,9 +273,11 @@ uint64_t conn_id, std::string req_str) {
     resp_json.AddMember("data",resp_json_data,resp_allocator);
     resp_json.Accept(writer);
     resp_str=resp_buffer.GetString();
+
     return resp_str;
 }
 
+/*
 std::string PyClient::Send(std::string req_str) {
     std::string resp_str;
     ConnectMap::iterator it;
@@ -267,6 +289,7 @@ std::string PyClient::Send(std::string req_str) {
     Writer<StringBuffer> writer(resp_buffer);
 
     Value resp_json(kObjectType);
+    Value resp_json_function_return_code(kNumberType);
     Value resp_json_src_type(kNumberType);
     Value resp_json_src_id(kNumberType);
     Value resp_json_dest_type(kNumberType);
@@ -287,6 +310,7 @@ std::string PyClient::Send(std::string req_str) {
     std::string tmp_str=req_doc["data"].GetString();
     sprintf(req_packet->data_,"%s",tmp_str.c_str());
 
+    resp_json_function_return_code=0;
     resp_json_src_type=req_packet->dest_type_;
     resp_json_src_id=req_packet->dest_id_;
     resp_json_dest_type=req_packet->src_type_;
@@ -300,7 +324,8 @@ std::string PyClient::Send(std::string req_str) {
     if (NULL==conn) {
         delete req_packet;
 
-        resp_json_error_code=4;
+        resp_json_function_return_code=4;
+        resp_json.AddMember("function_return_code",resp_json_function_return_code);
         resp_json.AddMember("src_type",resp_json_src_type,resp_allocator);
         resp_json.AddMember("src_id",resp_json_src_id,resp_allocator);
         resp_json.AddMember("dest_type",resp_json_dest_type,resp_allocator);
@@ -325,7 +350,8 @@ std::string PyClient::Send(std::string req_str) {
         delete req_packet;
         transport_.disconnect(conn);
 
-        resp_json_error_code=3;
+        resp_json_function_return_code=3;
+        resp_json.AddMember("function_return_code",resp_json_function_return_code);
         resp_json.AddMember("src_type",resp_json_src_type,resp_allocator);
         resp_json.AddMember("src_id",resp_json_src_id,resp_allocator);
         resp_json.AddMember("dest_type",resp_json_dest_type,resp_allocator);
@@ -345,13 +371,14 @@ std::string PyClient::Send(std::string req_str) {
 
     transport_.disconnect(conn);
     if (2==conn_cond.send_) {
-        resp_json_error_code=5;//发送超时
+        resp_json_function_return_code=5;//发送超时
     } else {
         resp_json_error_code=conn_cond.resp_.error_code_;
     }
     resp_json_data.SetString(conn_cond.resp_.data_, 
                         strlen(conn_cond.resp_.data_),
                         resp_allocator);
+    resp_json.AddMember("function_return_code",resp_json_function_return_code);
     resp_json.AddMember("src_type",resp_json_src_type,resp_allocator);
     resp_json.AddMember("src_id",resp_json_src_id,resp_allocator);
     resp_json.AddMember("dest_type",resp_json_dest_type,resp_allocator);
@@ -362,7 +389,7 @@ std::string PyClient::Send(std::string req_str) {
     resp_json.Accept(writer);
     resp_str=resp_buffer.GetString();
     return resp_str;
-}
+}*/
 
 
 //Runnable

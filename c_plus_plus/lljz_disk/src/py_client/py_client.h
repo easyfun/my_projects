@@ -45,7 +45,7 @@ public:
     uint64_t Connect(std::string spec, bool auto_conn);
     void Disconnect(uint64_t conn_id);
     std::string Send(uint64_t conn_id, std::string req_str);
-    std::string Send(std::string req_str);    
+//    std::string Send(std::string req_str);    
 
 private:
     PacketFactory packet_factory_;

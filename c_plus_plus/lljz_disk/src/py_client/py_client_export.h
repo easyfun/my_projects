@@ -17,7 +17,7 @@ void Wait();
 uint64_t Connect(std::string spec, bool auto_conn);
 void Disconnect(uint64_t conn_id);
 std::string Send(uint64_t conn_id, std::string req_str);
-std::string SendOnce(std::string req);
+//std::string SendOnce(std::string req);
 
 }
 }

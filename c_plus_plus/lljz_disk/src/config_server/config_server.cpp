@@ -130,8 +130,8 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 uint64_t srv_id=document["srv_id"].GetUint64();
                 TBSYS_LOG(DEBUG,"srv_id=%llu",srv_id);
                 if (0==srv_id) {
-                    TBSYS_LOG(DEBUG,"%s","error_code 3");
-                    resp->error_code_=3;
+                    TBSYS_LOG(DEBUG,"%s","error_code 10001");
+                    resp->error_code_=10001;
                     if(conn->postPacket(resp) == false) {
                         delete resp;
                     }
@@ -142,8 +142,8 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
 
                 std::string spec=document["spec"].GetString();
                 if (spec.empty()) {
-                    TBSYS_LOG(DEBUG,"%s","error_code 4");
-                    resp->error_code_=4;
+                    TBSYS_LOG(DEBUG,"%s","error_code 10002");
+                    resp->error_code_=10002;
                     if(conn->postPacket(resp) == false) {
                         delete resp;
                     }
@@ -314,7 +314,7 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 }
                 mutex_.lock();
                 resp->setChannelId(req->getChannelId());
-                resp->msg_id_=req->msg_id+1;
+                resp->msg_id_=req->msg_id_+1;
                 resp->src_type_=SERVER_TYPE_CONFIG_SERVER;
                 resp->src_id_=req->dest_id_;
                 resp->dest_type_=req->src_type_;

@@ -36,7 +36,8 @@ all:py_client
 py_client:py_client.so
 
 install:
-	cp py_test_client.py $(OUTPUT_PATH)/
+	cp py_test_client.py $(OUTPUT_PATH)
+	cp py_client.ini $(OUTPUT_PATH)
 
 py_client.so:py_client.o py_client_export.o
 	cd $(OUTPUT_PATH) && \
