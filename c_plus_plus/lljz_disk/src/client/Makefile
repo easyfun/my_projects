@@ -34,6 +34,11 @@ client:client.cpp
 	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
 	$(JSON_INC) $(JSON_LIB) -lpthread -lrt
 
+client_pending:client_pending.cpp	
+	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
+	$(JSON_INC) $(JSON_LIB) -lpthread -lrt
+
 #test_client:$(EXE_OBJ)
 #	cd $(OUTPUT_PATH) && $(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ $(TBSDK_INC) $(TBSDK_LIB) -lpthread -lrt
 

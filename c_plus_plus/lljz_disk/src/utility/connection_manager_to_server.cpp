@@ -63,7 +63,7 @@ bool ConnectionManagerToServer::start() {
         return false;
     }
 
-    depend_server_type_=TBSYS_LOG.getIntList(
+    depend_server_type_=TBSYS_CONFIG.getIntList(
         "server","depend_server_type");
 
     conn_to_config_server_=transport_->connect(
@@ -154,7 +154,7 @@ void ConnectionManagerToServer::CheckConfigServer() {
     Document::AllocatorType& allocator=req_doc.GetAllocator();
     Value req_json(kObjectType);
     Value spec_json(kStringType);
-    spec_json=self_server_spec_;
+    spec_json.SetString(StringRef(self_server_spec_));
     req_json.AddMember("spec",spec_json,allocator);
 
     Value srv_type_json(kNumberType);
@@ -168,7 +168,7 @@ void ConnectionManagerToServer::CheckConfigServer() {
     Value dep_srv_type_json(kArrayType);
     int size=depend_server_type_.size();
     for (int i=0;i<size;i++) {
-        dep_srv_type_json.PushBack(depend_server_type_[i]);
+        dep_srv_type_json.PushBack(depend_server_type_[i],allocator);
     }
 
     StringBuffer req_buffer;

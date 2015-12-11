@@ -77,7 +77,7 @@ private:
 
     //依赖后端业务服务
     //not include config_server,access_server
-    std::vector<uint16_t> depend_server_type_;
+    std::vector<int> depend_server_type_;
     std::vector<ServerURL*> server_url_;
 
     //server_type---LoadConnectionManager*

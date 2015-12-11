@@ -37,7 +37,7 @@ private:
     tbsys::CRWSimpleLock rw_lock_;
 
     //重发队列
-    PacketQueue resend_queue_;
+    tbnet::PacketQueue resend_queue_;
     tbsys::CThreadMutex mutex_;   
 
     bool stop_;

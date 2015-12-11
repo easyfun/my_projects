@@ -66,16 +66,16 @@ int main(int argc, char *argv[])
   // parse cmd
   parse_cmd_line(argc, argv);
   char config_file[64];
-  sprintf(config_file,"%s","./business_server.ini");
+  sprintf(config_file,"%s","./account_server.ini");
   if(TBSYS_CONFIG.load(config_file)) {
     fprintf(stderr, "load file %s error\n", config_file);
     return EXIT_FAILURE;
   }
 
   const char* sz_pid_file = TBSYS_CONFIG.getString(
-    "server", "pid_file", "business_server.pid");
+    "server", "pid_file", "account_server.pid");
   const char* sz_log_file = TBSYS_CONFIG.getString(
-    "server", "log_file", "business_server.log");
+    "server", "log_file", "account_server.log");
   if(1) {
     char* p, dir_path[256];
     sprintf(dir_path, "%s", sz_pid_file);

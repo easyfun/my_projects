@@ -48,8 +48,8 @@ M:PUBLIC_REGISTER_REQ
 错误号
 0 成功
 //public 1~10000
-6 服务已注册
-7 服务未注册
+1 服务已注册
+2 服务未注册
 
 //config_server 10001~15000
 10001 请求参数错误srv_id

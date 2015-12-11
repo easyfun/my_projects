@@ -13,14 +13,14 @@ ConnectionManagerFromClient::~ConnectionManagerFromClient() {
 
 }
 
-int RegisterConnection::Register(
+int ConnectionManagerFromClient::Register(
 uint64_t id, tbnet::Connection* conn) {
     ConnFromClientMap::iterator it;
     tbnet::Connection* conn_exist;
     rw_lock_.wrlock();
     it=conn_from_client_.find(id);
     if (conn_from_client_.end() != it) {
-        conn_exist=it->second();
+        conn_exist=it->second;
         if (conn_exist==conn) {
             rw_lock_.unlock();
             return 0;
@@ -61,7 +61,7 @@ uint64_t id, tbnet::Packet* packet) {
         return;
     }
 
-    conn=it->second();
+    conn=it->second;
     if (conn && conn->isConnectState()) {
         if (false==conn->postPacket(packet)) {
             rw_lock_.unlock();
@@ -104,7 +104,6 @@ void ConnectionManagerFromClient::destroy() {
         delete packet;
     }
     mutex_.unlock();
-    return true;
 }
 
 void ConnectionManagerFromClient::run(
@@ -127,8 +126,8 @@ void ConnectionManagerFromClient::CheckResend() {
     tbnet::Connection* conn;
     ConnFromClientMap::iterator it;
 
-    PacketQueue copy_queue;
-    PacketQueue fail_queue;
+    tbnet::PacketQueue copy_queue;
+    tbnet::PacketQueue fail_queue;
     mutex_.lock();
     resend_queue_.moveTo(&copy_queue);
     mutex_.unlock();
@@ -155,7 +154,7 @@ void ConnectionManagerFromClient::CheckResend() {
             continue;
         }
 
-        conn=it->second();
+        conn=it->second;
         if (conn && conn->isConnectState()) {
             if (false==conn->postPacket(packet)) {
                 rw_lock_.unlock();

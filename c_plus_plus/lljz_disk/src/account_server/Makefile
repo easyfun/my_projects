@@ -25,12 +25,12 @@ JSON_LIB=$(RAPIDJSON_LIB)
 PROJECT_INC=-I../packets -I../protocol -I../utility
 VPATH=../packets ../utility
 
-OUTPUT_PATH=../../output/business_server
+OUTPUT_PATH=../../output/account_server
 
-all:business_server
-.PHONY:business_server
+all:account_server
+.PHONY:account_server
 
-business_server:main.o business_server.o global.o connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o
+account_server:main.o account_server.o global.o connection_manager_from_client.o connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o
 	cd $(OUTPUT_PATH) && \
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) $(JSON_LIB) -lpthread -lrt
@@ -39,28 +39,27 @@ main.o:main.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) -lpthread -lrt
 
-#business_server.o:business_server.cpp business_server.hpp base_packet.hpp packet_factory.hpp request_packet.hpp response_packet.hpp
-business_server.o:business_server.cpp
-	echo $(CXXCOMPILE)
+#account_server.o:account_server.cpp account_server.hpp base_packet.hpp packet_factory.hpp request_packet.hpp response_packet.hpp
+account_server.o:account_server.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)
 
 global.o:global.cpp
-	echo "compile global.cpp"
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)
 
 connection_manager_to_server.o:connection_manager_to_server.cpp
-	echo "compile connection_manager_to_server.cpp"
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
+
+connection_manager_from_client.o:connection_manager_from_client.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
 		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
 
 load_connection_manager.o:load_connection_manager.cpp
-	echo "compile load_connection_manager.cpp"
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)
 
 packet_handler_to_server.o:packet_handler_to_server.cpp
-	echo "compile packet_handler_to_server.cpp"
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)
