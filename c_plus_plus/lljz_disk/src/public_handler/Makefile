@@ -6,7 +6,6 @@ CXXFLAGS = -O3 -Wall -Wno-deprecated -fPIC
 CXXLINK=$(CXX) -g
 CXXCOMPILE=$(CXX) -c -g
 
-
 TBSDK_LIBRARY_PATH=/home/trxh/lib
 TBSDK_LIB=$(TBSDK_LIBRARY_PATH)/lib/libtbnet.a $(TBSDK_LIBRARY_PATH)/lib/libtbsys.a
 TBSDK_INC = -I$(TBSDK_LIBRARY_PATH)/include
@@ -16,9 +15,6 @@ RAPIDJSON_INC=-I/home/trxh/my_projects/rapidjson/include
 RAPIDJSON_LIB=
 JSON_INC=$(RAPIDJSON_INC)
 JSON_LIB=$(RAPIDJSON_LIB)
-PYTHON_BOOST_INC=-I/usr/local/include -I/usr/include/python2.7
-PYTHON_BOOST_LIB=-L/usr/lib/python2.7 -L/user/local/lib -lboost_python -lpython2.7
-
 
 #TBSDK_LIBRARY_PATH=/home/lljz/lib
 #TBSDK_LIB=$(TBSDK_LIBRARY_PATH)/lib/libtbnet.a $(TBSDK_LIBRARY_PATH)/lib/libtbsys.a
@@ -29,35 +25,13 @@ PYTHON_BOOST_LIB=-L/usr/lib/python2.7 -L/user/local/lib -lboost_python -lpython2
 #RAPIDJSON_LIB=
 #JSON_INC=$(RAPIDJSON_INC)
 #JSON_LIB=$(RAPIDJSON_LIB)
-#PYTHON_BOOST_INC=-I/usr/local/include -I/usr/include/python2.6
-#PYTHON_BOOST_LIB=-L/usr/lib/python2.6 -L/user/local/lib -lboost_python -lpython2.6
 
-PROJECT_INC=-I../packets -I../protocol -I../utility
+PROJECT_INC=-I../packets -I../protocol -I../utility -I../public_handler
 VPATH=../packets ../utility
 
-OUTPUT_PATH=../../output/py_client
+OUTPUT_PATH=./
 
-all:py_client
-.PHONY:py_client install
 
-py_client:py_client.so
-
-install:
-	rm $(OUTPUT_PATH)/py_test_client.py
-	cp py_test_client.py $(OUTPUT_PATH)
-	cp py_client.ini $(OUTPUT_PATH)
-
-py_client.so:py_client.o py_client_export.o
-	cd $(OUTPUT_PATH) && \
-	$(CXXLINK) -shared $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
-	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
-	$(JSON_INC) $(JSON_LIB) $(PYTHON_BOOST_INC) \
-	$(PYTHON_BOOST_LIB) -lpthread -lrt
-
-py_client.o:py_client.cpp
+public_echo_test_req_handler.o:public_echo_test_req_handler.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
-	$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) $(PYTHON_BOOST_INC)
-
-py_client_export.o:py_client_export.cpp
-	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
-	$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) $(PYTHON_BOOST_INC)
+		$^ $(TBSDK_INC) $(PROJECT_INC)

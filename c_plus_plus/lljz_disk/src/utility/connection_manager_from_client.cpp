@@ -13,6 +13,15 @@ ConnectionManagerFromClient::~ConnectionManagerFromClient() {
 
 }
 
+bool ConnectionManagerFromClient::IsSupportServerType(
+uint16_t type) {
+    if (support_server_type_.end()==
+        support_server_type_.find(type)) {
+        return false;
+    }
+    return true;    
+}
+
 int ConnectionManagerFromClient::Register(
 uint64_t id, tbnet::Connection* conn) {
     ConnFromClientMap::iterator it;
@@ -81,6 +90,13 @@ uint64_t id, tbnet::Packet* packet) {
 
 
 bool ConnectionManagerFromClient::start() {
+    std::vector<int> v=TBSYS_CONFIG.getIntList(
+        "server","supported_server_type");
+    int size=v.size();
+    for (int i=0;i<size;i++) {
+        
+        support_server_type_[(uint16_t)v[i]]=(uint16_t)v[i];
+    }
     timer_thread_.start(this,NULL);
     return true;
 }

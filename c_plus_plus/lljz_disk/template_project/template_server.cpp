@@ -1,4 +1,4 @@
-#include "account_server.hpp"
+#include "TEMPLATE_HEADER_FILE_server.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
 #include "handler.hpp"
@@ -9,16 +9,16 @@ using namespace tbnet;
 namespace lljz {
 namespace disk {
 
-AccountServer::AccountServer()
+TEMPLATE_SERVER_CLASS::TEMPLATE_SERVER_CLASS()
 :conn_manager_to_srv_(NULL) {
     clientDisconnThrowPackets_=0;
     queueThreadTimeoutThrowPackets_=0;
 }
 
-AccountServer::~AccountServer() {
+TEMPLATE_SERVER_CLASS::~TEMPLATE_SERVER_CLASS() {
 }
 
-void AccountServer::Start() {
+void TEMPLATE_SERVER_CLASS::Start() {
     if (Initialize()) {
         return;
     }
@@ -69,7 +69,7 @@ void AccountServer::Start() {
     Destroy();
 }
 
-void AccountServer::Stop() {
+void TEMPLATE_SERVER_CLASS::Stop() {
     task_queue_thread_.stop();
     conn_manager_from_client_.stop();
 //    conn_manager_to_srv_->stop();
@@ -77,7 +77,7 @@ void AccountServer::Stop() {
     to_server_transport_.stop();
 }
 
-int AccountServer::Initialize() {
+int TEMPLATE_SERVER_CLASS::Initialize() {
     //packet_streamer
     packet_streamer_.setPacketFactory(&packet_factory_);
 
@@ -87,7 +87,7 @@ int AccountServer::Initialize() {
     return EXIT_SUCCESS;
 }
 
-int AccountServer::Destroy() {
+int TEMPLATE_SERVER_CLASS::Destroy() {
 /*    if (conn_manager_to_srv_) {
         delete conn_manager_to_srv_;
     }*/
@@ -95,11 +95,11 @@ int AccountServer::Destroy() {
 }
 
 tbnet::IPacketHandler::HPRetCode 
-AccountServer::handlePacket(
+TEMPLATE_SERVER_CLASS::handlePacket(
 tbnet::Connection *connection, 
 tbnet::Packet *packet) {
     TBSYS_LOG(DEBUG,"%s",
-        "AccountServer::handlePacket");
+        "TEMPLATE_SERVER_CLASS::handlePacket");
 
     if (!packet->isRegularPacket()) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
@@ -117,10 +117,10 @@ tbnet::Packet *packet) {
     return tbnet::IPacketHandler::KEEP_CHANNEL;
 }
 
-bool AccountServer::handlePacketQueue(
+bool TEMPLATE_SERVER_CLASS::handlePacketQueue(
 tbnet::Packet * apacket, void *args) {
     TBSYS_LOG(DEBUG,"%s",
-        "AccountServer::handlePacketQueue");
+        "TEMPLATE_SERVER_CLASS::handlePacketQueue");
     BasePacket *packet = (BasePacket *) apacket;
     tbnet::Connection* conn=packet->get_connection();
     int64_t now_time=tbsys::CTimeUtil::getTime();
@@ -212,10 +212,10 @@ tbnet::Packet * apacket, void *args) {
 }
 
 //收到业务应答包事件处理
-bool AccountServer::BusinessHandlePacket(
+bool TEMPLATE_SERVER_CLASS::BusinessHandlePacket(
 tbnet::Packet *packet, void *args) {
     TBSYS_LOG(DEBUG,"%s",
-        "AccountServer::BusinessHandlePacket");
+        "TEMPLATE_SERVER_CLASS::BusinessHandlePacket");
     ResponsePacket* resp=NULL;
     tbnet::Connection* conn=NULL;
     int64_t now_time=tbsys::CTimeUtil::getTime();

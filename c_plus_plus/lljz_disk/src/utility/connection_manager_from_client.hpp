@@ -8,7 +8,10 @@
 namespace lljz {
 namespace disk {
 
-typedef __gnu_cxx::hash_map<uint64_t,tbnet::Connection*> ConnFromClientMap;
+typedef __gnu_cxx::hash_map<uint64_t,
+                tbnet::Connection*> ConnFromClientMap;
+typedef __gnu_cxx::hash_map<uint16_t,
+                uint16_t> SupportServerTypeMap;
 class ConnectionManagerFromClient:public tbsys::Runnable {
 public:
     ConnectionManagerFromClient();
@@ -25,8 +28,16 @@ public:
 
     //注册来自客户端的连接
     //用于推送
-    int Register(uint64_t id, tbnet::Connection* conn);
+/*    
+    int RegisterAccess(uint16_t type,uint64_t id, 
+        tbnet::Connection* conn);
+    bool IsRegisterAccess(uint64_t id);
+*/
+    int Register(uint64_t id,
+        tbnet::Connection* conn);
     bool IsRegister(uint64_t id);
+    bool IsSupportServerType(uint16_t type);
+
     void PostPacket(uint64_t id, tbnet::Packet* packet);
 
 
@@ -43,6 +54,7 @@ private:
     bool stop_;
     tbsys::CThread timer_thread_;
 
+    SupportServerTypeMap support_server_type_;
 };
 
 

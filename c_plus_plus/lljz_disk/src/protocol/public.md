@@ -50,6 +50,8 @@ M:PUBLIC_REGISTER_REQ
 //public 1~10000
 1 服务已注册
 2 服务未注册
+3 server_type not supported
+4 msg_id not supported
 
 //config_server 10001~15000
 10001 请求参数错误srv_id

@@ -29,12 +29,12 @@ JSON_LIB=$(RAPIDJSON_LIB)
 PROJECT_INC=-I../packets -I../protocol -I../utility -I../public_handler
 VPATH=../packets ../utility ../public_handler
 
-OUTPUT_PATH=../../output/account_server
+OUTPUT_PATH=../../output/TEMPLATE_SERVER
 
-all:account_server
-.PHONY:account_server
+all:TEMPLATE_SERVER
+.PHONY:TEMPLATE_SERVER
 
-account_server:main.o account_server.o global.o connection_manager_from_client.o connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o handler_router.o public_echo_test_req_handler.o
+TEMPLATE_SERVER:main.o TEMPLATE_SERVER.o global.o connection_manager_from_client.o connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o handler_router.o public_echo_test_req_handler.o
 	cd $(OUTPUT_PATH) && \
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) $(JSON_LIB) -lpthread -lrt
@@ -43,8 +43,8 @@ main.o:main.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) -lpthread -lrt
 
-#account_server.o:account_server.cpp account_server.hpp base_packet.hpp packet_factory.hpp request_packet.hpp response_packet.hpp
-account_server.o:account_server.cpp
+#TEMPLATE_SERVER.o:TEMPLATE_SERVER.cpp TEMPLATE_SERVER.hpp base_packet.hpp packet_factory.hpp request_packet.hpp response_packet.hpp
+TEMPLATE_SERVER.o:TEMPLATE_SERVER.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)
 

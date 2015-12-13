@@ -39,6 +39,7 @@ enum {
    RESPONSE_PACKET=1
 };
 
+//uint64_t [1,65535]
 //server type
 enum {
    SERVER_TYPE_CONFIG_SERVER=1,   //配置服务
@@ -46,8 +47,8 @@ enum {
    SERVER_TYPE_ACCOUNT_SERVER=3,  //账号服务
    SERVER_TYPE_FILE_SERVER=4,    //文件服务器
 
-   SERVER_TYPE_CLIENT_LINUX=1000,  //linux客户端
-   SERVER_TYPE_PYTHON_CLIENT_LINUX=1001  //linux python客户端
+   SERVER_TYPE_CLIENT_LINUX=65000,  //linux客户端
+   SERVER_TYPE_PYTHON_CLIENT_LINUX=65001  //linux python客户端
 };
 
 //public
@@ -69,9 +70,10 @@ enum {
 };
 
 //account_server
-/*enum {
+enum {
+   ACCOUNT_SERVER_
 };
-*/
+
 
 enum {
    DIRECTION_RECEIVE = 1,
