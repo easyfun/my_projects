@@ -187,7 +187,12 @@ tbnet::Packet * apacket, void *args) {
                 TBSYS_LOG(DEBUG,"%s","not register");
                 return true;
             }
-
+/*            if (PUBLIC_ECHO_TEST_REQ==req->msg_id_) {
+                strcat(resp->data_,req->data_);
+                if (false==conn->postPacket(resp)) {
+                    delete resp;
+                }
+            }*/
             //普通业务处理
             resp->set_recv_time(now_time);
             Handler handler=HANDLER_ROUTER.GetHandler(

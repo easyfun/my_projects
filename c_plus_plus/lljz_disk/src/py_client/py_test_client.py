@@ -69,16 +69,16 @@ def RunTest():
         "src_id":1,
         "dest_type":3,
         "dest_id":0,
-        "msg_id":999,
+        "msg_id":0,
         "version":0,
         "data":{
-            "message":"hello world"
+            "message":"helloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworldhelloworld"
         }
     }
     req_str=json.dumps(request)
     start=datetime.datetime.now()
     n=0
-    while n < 1:
+    while n < 10000:
         n+=1
         resp_str=py_client.Send(conn_id,req_str)
         resp_json=json.loads(resp_str)

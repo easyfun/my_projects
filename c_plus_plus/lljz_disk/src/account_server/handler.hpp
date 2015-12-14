@@ -4,6 +4,7 @@
 #include "base_packet.hpp"
 #include "public_echo_test_req_handler.h"
 #include "handler_router.hpp"
+#include "account_server_handler.h"
 
 namespace lljz {
 namespace disk {
