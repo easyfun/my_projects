@@ -33,12 +33,19 @@ public:
     void CheckReconn();
     void CheckFree();
 
+    RedisClient* GetRedisClient();
+    void ReleaseRedisClient(RedisClient* rc, bool active);
+
 private:
     bool stop_;
     tbsys::CThread timer_thread_;
 
+    char redis_host_[200];
+    int redis_port_;
+
     RedisClient* redis_client_pool_;
     int redis_client_num_;
+    int connect_time_out_;
 
     std::queue<RedisClient*> free_redis_client_;
     tbsys::CThreadMutext free_mutext_;
