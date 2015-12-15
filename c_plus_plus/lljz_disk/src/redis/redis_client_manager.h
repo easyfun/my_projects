@@ -3,14 +3,14 @@
 
 #include "tbnet.h"
 #include "tbsys.h"
-#include "hiredis/hiredis.h"
+#include "hiredis.h"
 
 namespace lljz {
 namespace disk {
 
 struct RedisClient {
     redisContext* redis_context_;
-    int status_;//
+//    int status_;//
     int64_t last_used_time_;
 
     RedisClient() {
@@ -42,18 +42,19 @@ private:
 
     char redis_host_[200];
     int redis_port_;
+    int redis_index_;
 
     RedisClient* redis_client_pool_;
     int redis_client_num_;
-    int connect_time_out_;
+    int redis_connect_time_out_;
 
     std::queue<RedisClient*> free_redis_client_;
-    tbsys::CThreadMutext free_mutext_;
+    tbsys::CThreadMutex free_mutex_;
 //    tbsys::CThreadCond free_cond_;
 
 
     std::queue<RedisClient*> reconn_redis_client_;
-    tbsys::CThreadMutext reconn_mutext_;
+    tbsys::CThreadMutex reconn_mutex_;
 //    tbsys::CThreadCond reconn_cond_;
 
 };
