@@ -8,6 +8,7 @@
 #include "base_packet.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
+#include "redis_client_manager.h"
 
 using namespace rapidjson;
 

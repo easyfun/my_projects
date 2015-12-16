@@ -8,6 +8,8 @@
 namespace lljz {
 namespace disk {
 
+#define REDIS_CLIENT_MANAGER lljz::disk::RedisClientManager::GetRedisClientManager();
+
 struct RedisClient {
     redisContext* redis_context_;
 //    int status_;//
@@ -35,6 +37,8 @@ public:
 
     RedisClient* GetRedisClient();
     void ReleaseRedisClient(RedisClient* rc, bool active);
+
+    static RedisClientManager& GetRedisClientManager();
 
 private:
     bool stop_;

@@ -3,6 +3,8 @@
 namespace lljz {
 namespace disk {
 
+static RedisClientManager g_redis_client_manager;
+
 RedisClientManager::RedisClientManager() {
     stop_=false;
 }
@@ -204,6 +206,9 @@ RedisClient* rc, bool active) {
     reconn_mutex_.unlock();
 }
 
+RedisClientManager& RedisClientManager::GetRedisClientManager() {
+    return g_redis_client_manager;
+}
 
 }
 }
