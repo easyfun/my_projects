@@ -64,6 +64,7 @@ def RunTest():
         return
 
     #回显
+    '''
     request = {
         "src_type":65001,
         "src_id":1,
@@ -94,7 +95,81 @@ def RunTest():
 
     end=datetime.datetime.now()
     print("time=%d" % (end-start).seconds)
+    '''
+
+    #注册
+    request = {
+        "src_type":65001,
+        "src_id":1,
+        "dest_type":3,
+        "dest_id":0,
+        "msg_id":1000,
+        "version":0,
+        "data":{
+            "account":"",
+            "password":"123456"
+        }
+    }
+    start=datetime.datetime.now()
+    n=0
+    account=""
+    while n < 1:
+        n+=1
+        account="yangjinbin_%08d" % n
+        request['data']['account']=account
+
+        req_str=json.dumps(request)
+        resp_str=py_client.Send(conn_id,req_str)
+        resp_json=json.loads(resp_str)
+        #print('resp:%s' % resp_json)
+        if resp_json['function_return']:
+            print('request fail,error_msg=%s, n=%d'
+                % (resp_json['function_return'],n))
+            break
+        if 0!=resp_json['error_code']:
+            print('request fail,error_code=%d' %
+                resp_json['error_code'])
+            break
+    end=datetime.datetime.now()
+    print("n=%d time=%d" % (n,(end-start).seconds))
     #print("resp:%s" % resp_str)
+
+    #设置账号信息
+    request = {
+        "src_type":65001,
+        "src_id":1,
+        "dest_type":3,
+        "dest_id":0,
+        "msg_id":1002,
+        "version":0,
+        "data":{
+            "account":account,
+            "img_url":"http://www.lljz.com/img_server/123.png",
+            "home_page":"http://www.lljz.com/"
+        }
+    }
+    start=datetime.datetime.now()
+    #n=0
+    #while n < 1:
+        #n+=1
+    #request['data']['account']="yangjinbin_%04d" % n
+
+    req_str=json.dumps(request)
+    print("req_str:%s" % req_str)
+    resp_str=py_client.Send(conn_id,req_str)
+    resp_json=json.loads(resp_str)
+    print('resp:%s' % resp_json)
+    if resp_json['function_return']:
+        print('request fail,error_msg=%s, n=%d'
+            % (resp_json['function_return'],n))
+        #break
+    if 0!=resp_json['error_code']:
+        print('request fail,error_code=%d' %
+            resp_json['error_code'])
+        #break
+    #end=datetime.datetime.now()
+    #print("n=%d time=%d" % (n,(end-start).seconds))
+    #print("resp:%s" % resp_str)    
 
     py_client.Stop()
     py_client.Wait()

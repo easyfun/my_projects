@@ -193,6 +193,10 @@ RedisClient* RedisClientManager::GetRedisClient() {
 
 void RedisClientManager::ReleaseRedisClient(
 RedisClient* rc, bool active) {
+    if (NULL==rc) {
+        return;
+    }
+    
     if (active) {
         rc->last_used_time_=tbsys::CTimeUtil::getTime();
         free_mutex_.lock();

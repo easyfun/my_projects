@@ -42,7 +42,7 @@ OUTPUT_PATH=./
 all:test.exe
 .PHONY:test.exe
 
-test.exe:test_redis.o redis_client_manager.o
+test.exe:test_redis.o redis_client_manager.o redis_client.o
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
 	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
 	$(JSON_INC) $(JSON_LIB) $(PYTHON_BOOST_INC) \
@@ -54,6 +54,10 @@ test_redis.o:test_redis.cpp
 	$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) $(PYTHON_BOOST_INC) \
 	$(REDIS_INC)
 
+redis_client.o:redis_client.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
+	$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) $(PYTHON_BOOST_INC) \
+	$(REDIS_INC)
 
 redis_client_manager.o:redis_client_manager.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \

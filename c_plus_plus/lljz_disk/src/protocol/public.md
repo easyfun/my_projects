@@ -98,6 +98,8 @@ M:PUBLIC_REGISTER_REQ
 //account_server 20001~35000
 20001 请求参数错误
 20002 redis database不可用
+20003 账号不存在
+20004 操作redis database失败
 
 
 

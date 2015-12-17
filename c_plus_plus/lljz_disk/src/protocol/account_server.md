@@ -3,6 +3,7 @@ account     账号
 password    密码
 img_url     头像
 home_page   主页
+timestamp    时间戳
 
 
 M:ACCOUNT_SERVER_REGISTER_ACCOUNT_REQ
@@ -27,6 +28,7 @@ M:ACCOUNT_SERVER_SET_ACCOUNT_INFO_REQ
 请求消息id:1002
 请求:
     {
+        "account":"lljzfly",//账号
         "img_url":"",//头像
         "home_page":""//主页
     }
@@ -39,11 +41,12 @@ M:ACCOUNT_SERVER_SET_ACCOUNT_INFO_REQ
 备注:
 
 
-M:ACCOUNT_SERVER_MODIFY_ACCOUNT_PASSWORD_REQ
-功能说明:修改账号密码
+M:ACCOUNT_SERVER_MODIFY_LOGIN_PASSWORD_REQ
+功能说明:修改登陆密码
 请求消息id:1004
 请求:
     {
+        "account":"lljzfly",//账号
         "old_password":"",//旧密码
         "new_password":""//新密码
     }

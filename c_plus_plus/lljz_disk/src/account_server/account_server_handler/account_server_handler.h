@@ -8,12 +8,13 @@
 #include "base_packet.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
+#include "redis_client.h"
 #include "redis_client_manager.h"
 
 using namespace rapidjson;
 
-namespace {
-namespace {
+namespace lljz {
+namespace disk {
 
 //M:ACCOUNT_SERVER_REGISTER_ACCOUNT_REQ
 //注册账号
@@ -24,9 +25,15 @@ void RegisterAccountReq(RequestPacket* req,
 
 //M:ACCOUNT_SERVER_SET_ACCOUNT_INFO_REQ
 //设置账号信息
+void SetAccountInfoReq(RequestPacket* req,
+    void* args, 
+    ResponsePacket* resp);
 
-//M:ACCOUNT_SERVER_MODIFY_ACCOUNT_PASSWORD_REQ
+//M:ACCOUNT_SERVER_MODIFY_LOGIN_PASSWORD_REQ
 //修改登陆密码
+void ModifyLoginPasswordReq(RequestPacket* req,
+    void* args, 
+    ResponsePacket* resp);
 
 //M:ACCOUNT_SERVER_LOGIN_REQ
 //登陆

@@ -3,6 +3,8 @@
 #include "response_packet.hpp"
 #include "handler.hpp"
 #include "handler_router.hpp"
+#include "redis_client.h"
+#include "redis_client_manager.h"
 
 using namespace tbnet;
 
@@ -26,6 +28,7 @@ void AccountServer::Start() {
     RegisterHandler();
 
     //process thread
+    REDIS_CLIENT_MANAGER.start();
     task_queue_thread_.start();
     conn_manager_from_client_.start();
 
@@ -66,6 +69,7 @@ void AccountServer::Start() {
 //    conn_manager_to_srv_->wait();
     from_client_transport_.wait();
     to_server_transport_.wait();
+    REDIS_CLIENT_MANAGER.wait();
     Destroy();
 }
 
@@ -75,6 +79,7 @@ void AccountServer::Stop() {
 //    conn_manager_to_srv_->stop();
     from_client_transport_.stop();
     to_server_transport_.stop();
+    REDIS_CLIENT_MANAGER.stop();
 }
 
 int AccountServer::Initialize() {

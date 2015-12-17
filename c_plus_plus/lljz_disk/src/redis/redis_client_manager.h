@@ -4,21 +4,12 @@
 #include "tbnet.h"
 #include "tbsys.h"
 #include "hiredis.h"
+#include "redis_client.h"
 
 namespace lljz {
 namespace disk {
 
-#define REDIS_CLIENT_MANAGER lljz::disk::RedisClientManager::GetRedisClientManager();
-
-struct RedisClient {
-    redisContext* redis_context_;
-//    int status_;//
-    int64_t last_used_time_;
-
-    RedisClient() {
-        memset(this,0,sizeof(RedisClient));
-    }
-};
+#define REDIS_CLIENT_MANAGER lljz::disk::RedisClientManager::GetRedisClientManager()
 
 class RedisClientManager : tbsys::Runnable {
 public:

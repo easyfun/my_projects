@@ -3,7 +3,7 @@
 namespace lljz {
 namespace disk {
 
-void RegisterAccountReq(RequestPacket* req,
+void SetAccountInfoReq(RequestPacket* req,
 void* args, ResponsePacket* resp) {
     Document req_doc;
     Document resp_doc;
@@ -17,7 +17,8 @@ void* args, ResponsePacket* resp) {
     TBSYS_LOG(DEBUG,"-------data:%s",req->data_);
     req_doc.Parse(req->data_);
     std::string req_account;
-    std::string req_password;
+    std::string req_img_url;
+    std::string req_home_page;
 
     //检查account
     if (!req_doc.HasMember("account") || !req_doc["account"].IsString()) {
@@ -31,23 +32,9 @@ void* args, ResponsePacket* resp) {
         return;
     }
     req_account=req_doc["account"].GetString();
-
-    //检查password
-    if (!req_doc.HasMember("password") || !req_doc["password"].IsString() ) {
+    if (req_account.empty()) {
         resp->error_code_=20001;
-        resp_error_msg="password is invalid";
-        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
-
-        resp_json.Accept(resp_writer);
-        resp_data=resp_buffer.GetString();
-        sprintf(resp->data_,"%s",resp_data.c_str());
-        return;
-    }
-    req_password=req_doc["password"].GetString();
-
-    if (req_account.empty() || req_password.empty()) {
-        resp->error_code_=20001;
-        resp_error_msg="account,password is invalid";
+        resp_error_msg="account is invalid";
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
 
         resp_json.Accept(resp_writer);
@@ -56,18 +43,62 @@ void* args, ResponsePacket* resp) {
         return;
     }
 
-    //增加账号
+    //检查img_url
+    if (req_doc.HasMember("img_url")) {
+        if (!req_doc["img_url"].IsString()) {
+            resp->error_code_=20001;
+            resp_error_msg="img_url is invalid";
+            resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
+
+            resp_json.Accept(resp_writer);
+            resp_data=resp_buffer.GetString();
+            sprintf(resp->data_,"%s",resp_data.c_str());
+            return;
+        }
+        req_img_url=req_doc["img_url"].GetString();
+    }
+    
+    //检查home_page
+    if (req_doc.HasMember("home_page")) {
+        if (!req_doc["home_page"].IsString()) {
+            resp->error_code_=20001;
+            resp_error_msg="home_page is invalid";
+            resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
+
+            resp_json.Accept(resp_writer);
+            resp_data=resp_buffer.GetString();
+            sprintf(resp->data_,"%s",resp_data.c_str());
+            return;
+        }
+        req_home_page=req_doc["home_page"].GetString();
+    }
+
+    if (req_img_url.empty() && req_home_page.empty()) {
+        resp->error_code_=0;
+        resp_error_msg="modify nothing";
+        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
+
+        resp_json.Accept(resp_writer);
+        resp_data=resp_buffer.GetString();
+        sprintf(resp->data_,"%s",resp_data.c_str());
+        return;
+    }
+    //判断账号是否存在
     RedisClient* rc=REDIS_CLIENT_MANAGER.GetRedisClient();
-    char cmd[200];
-    sprintf(cmd,"HSETNX %s account %s", 
-        req_account.c_str(), req_account.c_str());
-    redisReply* reply;
-    int cmd_ret=Rhsetnx(rc,cmd,reply);
+    char cmd[512];
+    sprintf(cmd,"EXISTS %s", req_account.c_str());
+        redisReply* reply;
+    int cmd_ret=Rexists(rc,cmd,reply);
     if (SUCCESS_ACTIVE != cmd_ret) {
         REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
 
-        resp->error_code_=20002;
-        resp_error_msg="redis database server is busy";
+        if (FAILED_ACTIVE==cmd_ret) {
+            resp->error_code_=20003;
+            resp_error_msg="account does not exist";
+        } else {
+            resp->error_code_=20002;
+            resp_error_msg="redis database server is busy";
+        }
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
 
         resp_json.Accept(resp_writer);
@@ -76,15 +107,32 @@ void* args, ResponsePacket* resp) {
         return;
     }
 
-    sprintf(cmd,"HMSET %s password %s timestamp %lld",
-        req_account.c_str(),req_password.c_str(), 
-        tbsys::CTimeUtil::getTime());
+    memset(cmd,0,sizeof(cmd));
+    sprintf(cmd,"HMSET %s",req_account.c_str());
+    char fv[512];
+    if (!req_img_url.empty()) {
+        sprintf(fv," img_url %s",req_img_url.c_str());
+        strcat(cmd,fv);
+    }
+
+    if (!req_home_page.empty()) {
+        sprintf(fv," home_page %s",req_home_page.c_str());
+        strcat(cmd,fv);
+    }
+
+    sprintf(fv," timestamp %lld",tbsys::CTimeUtil::getTime());
+    strcat(cmd,fv);
     cmd_ret=Rhmset(rc,cmd,reply);
     if (SUCCESS_ACTIVE != cmd_ret) {
         REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
 
-        resp->error_code_=20002;
-        resp_error_msg="redis database server is busy";
+        if (FAILED_ACTIVE==cmd_ret) {
+            resp->error_code_=20004;
+            resp_error_msg="set account info fail";
+        } else {
+            resp->error_code_=20002;
+            resp_error_msg="redis database server is busy";
+        }
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
 
         resp_json.Accept(resp_writer);
@@ -102,6 +150,7 @@ void* args, ResponsePacket* resp) {
     resp_json.Accept(resp_writer);
     resp_data=resp_buffer.GetString();
     sprintf(resp->data_,"%s",resp_data.c_str());
+
 }
 
 }

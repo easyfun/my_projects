@@ -10,8 +10,9 @@ namespace lljz {
 namespace disk {
 
 void RegisterHandler() {
-    HANDLER_ROUTER.RegisterHandler(
-        PUBLIC_ECHO_TEST_REQ,PublicEchoTestReqHandler);
+    HANDLER_ROUTER.RegisterHandler(PUBLIC_ECHO_TEST_REQ,PublicEchoTestReqHandler);
+    HANDLER_ROUTER.RegisterHandler(ACCOUNT_SERVER_REGISTER_ACCOUNT_REQ,RegisterAccountReq);
+    HANDLER_ROUTER.RegisterHandler(ACCOUNT_SERVER_SET_ACCOUNT_INFO_REQ,SetAccountInfoReq);
 }
 
 }
