@@ -37,9 +37,15 @@ void ModifyLoginPasswordReq(RequestPacket* req,
 
 //M:ACCOUNT_SERVER_LOGIN_REQ
 //登陆
+void LoginReq(RequestPacket* req,
+    void* args, 
+    ResponsePacket* resp);
 
 //M:ACCOUNT_SERVER_LOGOUT_REQ
 //退出
+void LogoutReq(RequestPacket* req,
+    void* args, 
+    ResponsePacket* resp);
 
 
 

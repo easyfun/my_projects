@@ -42,7 +42,8 @@ all:account_server
 account_server:main.o account_server.o global.o connection_manager_from_client.o \
 connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o \
 handler_router.o public_echo_test_req_handler.o redis_client.o redis_client_manager.o \
-register_account_req.o set_account_info_req.o
+register_account_req.o set_account_info_req.o modify_login_password_req.o \
+login_req.o logout_req.o
 	cd $(OUTPUT_PATH) && \
 		$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) \
@@ -103,6 +104,21 @@ register_account_req.o:register_account_req.cpp
 		$(REDIS_INC)
 
 set_account_info_req.o:set_account_info_req.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+modify_login_password_req.o:modify_login_password_req.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+login_req.o:login_req.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+logout_req.o:logout_req.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
 		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
 		$(REDIS_INC)

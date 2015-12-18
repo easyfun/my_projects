@@ -99,7 +99,9 @@ M:PUBLIC_REGISTER_REQ
 20001 请求参数错误
 20002 redis database不可用
 20003 账号不存在
-20004 操作redis database失败
+20004 设置账号信息失败
+20005 密码不正确
+20006 修改登陆密码错误
 
 
 

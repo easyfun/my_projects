@@ -124,6 +124,24 @@ void test_Rhmset(RedisClientManager* manager) {
     manager->ReleaseRedisClient(rc,true);
 }
 
+void test_Rhget(RedisClientManager* manager) {
+    RedisClient* rc=manager->GetRedisClient();
+    redisReply* reply;
+    int cmd_ret=Rhget(rc, "HGET lljzfly life", reply);
+    printf("cmd_ret=%d\n",cmd_ret);
+    if (SUCCESS_ACTIVE != cmd_ret) {
+        manager->ReleaseRedisClient(rc, cmd_ret);
+    }
+    manager->ReleaseRedisClient(rc,true);
+
+    cmd_ret=Rhget(rc, "HGET lljzfly001 life", reply);
+    printf("cmd_ret=%d\n",cmd_ret);
+    if (SUCCESS_ACTIVE != cmd_ret) {
+        manager->ReleaseRedisClient(rc, cmd_ret);
+    }
+    manager->ReleaseRedisClient(rc,true);
+}
+
 int main(int argc,char* argv[]) {
     if(TBSYS_CONFIG.load("test.ini")) {
         printf("load test.ini fail");
@@ -136,10 +154,11 @@ int main(int argc,char* argv[]) {
 //    test_ping(&redis_client_manager);
 //    test_set(&redis_client_manager, 10000);
 //    test_setnx(&redis_client_manager);
-    test_Rcommand(&redis_client_manager);
-    test_Rhsetnx(&redis_client_manager);
-    test_Rhsetnx(&redis_client_manager);
-    test_Rhmset(&redis_client_manager);
+//    test_Rcommand(&redis_client_manager);
+//    test_Rhsetnx(&redis_client_manager);
+//    test_Rhsetnx(&redis_client_manager);
+//    test_Rhmset(&redis_client_manager);
+    test_Rhget(&redis_client_manager);
 
     redis_client_manager.stop();
     redis_client_manager.wait();

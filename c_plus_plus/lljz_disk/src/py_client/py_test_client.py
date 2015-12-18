@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
 
+import time
 import datetime
 import json
 import py_client
@@ -98,6 +99,8 @@ def RunTest():
     '''
 
     #注册
+    print("------test Register")
+    password="123456"
     request = {
         "src_type":65001,
         "src_id":1,
@@ -107,34 +110,27 @@ def RunTest():
         "version":0,
         "data":{
             "account":"",
-            "password":"123456"
+            "password":password
         }
     }
-    start=datetime.datetime.now()
-    n=0
-    account=""
-    while n < 1:
-        n+=1
-        account="yangjinbin_%08d" % n
-        request['data']['account']=account
+        
+    account="yangjinbin_%08d" % time.time()
+    request['data']['account']=account
 
-        req_str=json.dumps(request)
-        resp_str=py_client.Send(conn_id,req_str)
-        resp_json=json.loads(resp_str)
-        #print('resp:%s' % resp_json)
-        if resp_json['function_return']:
-            print('request fail,error_msg=%s, n=%d'
-                % (resp_json['function_return'],n))
-            break
-        if 0!=resp_json['error_code']:
-            print('request fail,error_code=%d' %
-                resp_json['error_code'])
-            break
-    end=datetime.datetime.now()
-    print("n=%d time=%d" % (n,(end-start).seconds))
-    #print("resp:%s" % resp_str)
+    req_str=json.dumps(request)
+    print("req_str:%s" % req_str)
+    resp_str=py_client.Send(conn_id,req_str)
+    print('resp:%s' % resp_str)
+    resp_json=json.loads(resp_str)
+    if resp_json['function_return']:
+        print('request fail,error_msg=%s'
+            % (resp_json['function_return']))
+    if 0!=resp_json['error_code']:
+        print('request fail,error_code=%d' %
+            resp_json['error_code'])
 
     #设置账号信息
+    print("------test SetAccountInfoReq");
     request = {
         "src_type":65001,
         "src_id":1,
@@ -148,28 +144,124 @@ def RunTest():
             "home_page":"http://www.lljz.com/"
         }
     }
-    start=datetime.datetime.now()
-    #n=0
-    #while n < 1:
-        #n+=1
-    #request['data']['account']="yangjinbin_%04d" % n
-
     req_str=json.dumps(request)
     print("req_str:%s" % req_str)
     resp_str=py_client.Send(conn_id,req_str)
     resp_json=json.loads(resp_str)
     print('resp:%s' % resp_json)
     if resp_json['function_return']:
-        print('request fail,error_msg=%s, n=%d'
-            % (resp_json['function_return'],n))
-        #break
+        print('request fail,error_msg=%s'
+            % (resp_json['function_return']))
     if 0!=resp_json['error_code']:
         print('request fail,error_code=%d' %
             resp_json['error_code'])
-        #break
-    #end=datetime.datetime.now()
-    #print("n=%d time=%d" % (n,(end-start).seconds))
-    #print("resp:%s" % resp_str)    
+
+    #修改登陆密码
+    print("------test ModifyLoginPasswordReq");
+    new_password="234567"
+    request = {
+        "src_type":65001,
+        "src_id":1,
+        "dest_type":3,
+        "dest_id":0,
+        "msg_id":1004,
+        "version":0,
+        "data":{
+            "account":account,
+            "old_password":password,
+            "new_password":"234567"
+        }
+    }
+    req_str=json.dumps(request)
+    print("req_str:%s" % req_str)
+    resp_str=py_client.Send(conn_id,req_str)
+    resp_json=json.loads(resp_str)
+    print('resp:%s' % resp_json)
+    if resp_json['function_return']:
+        print('request fail,error_msg=%s'
+            % (resp_json['function_return']))
+    if 0!=resp_json['error_code']:
+        print('request fail,error_code=%d' %
+            resp_json['error_code'])
+
+    #登陆
+    print("------test LoginReq");
+    print("++++++wrong password")
+    request = {
+        "src_type":65001,
+        "src_id":1,
+        "dest_type":3,
+        "dest_id":0,
+        "msg_id":1006,
+        "version":0,
+        "data":{
+            "account":account,
+            "password":"wrong_password"
+        }
+    }
+    req_str=json.dumps(request)
+    print("req_str:%s" % req_str)
+    resp_str=py_client.Send(conn_id,req_str)
+    resp_json=json.loads(resp_str)
+    print('resp:%s' % resp_json)
+    if resp_json['function_return']:
+        print('request fail,error_msg=%s'
+            % (resp_json['function_return']))
+    if 0!=resp_json['error_code']:
+        print('request fail,error_code=%d' %
+            resp_json['error_code'])
+
+    print("++++++right password")
+    request = {
+        "src_type":65001,
+        "src_id":1,
+        "dest_type":3,
+        "dest_id":0,
+        "msg_id":1006,
+        "version":0,
+        "data":{
+            "account":account,
+            "password":new_password
+        }
+    }
+    req_str=json.dumps(request)
+    print("req_str:%s" % req_str)
+    resp_str=py_client.Send(conn_id,req_str)
+    resp_json=json.loads(resp_str)
+    print('resp:%s' % resp_json)
+    if resp_json['function_return']:
+        print('request fail,error_msg=%s'
+            % (resp_json['function_return']))
+    if 0!=resp_json['error_code']:
+        print('request fail,error_code=%d' %
+            resp_json['error_code'])
+
+    #登出
+    print("------test LogoutReq");
+    print("++++++wrong password")
+    request = {
+        "src_type":65001,
+        "src_id":1,
+        "dest_type":3,
+        "dest_id":0,
+        "msg_id":1008,
+        "version":0,
+        "data":{
+            "account":account,
+            "password":new_password
+        }
+    }
+    req_str=json.dumps(request)
+    print("req_str:%s" % req_str)
+    resp_str=py_client.Send(conn_id,req_str)
+    resp_json=json.loads(resp_str)
+    print('resp:%s' % resp_json)
+    if resp_json['function_return']:
+        print('request fail,error_msg=%s'
+            % (resp_json['function_return']))
+    if 0!=resp_json['error_code']:
+        print('request fail,error_code=%d' %
+            resp_json['error_code'])
 
     py_client.Stop()
     py_client.Wait()

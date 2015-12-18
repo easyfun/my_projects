@@ -28,13 +28,17 @@ struct RedisClient {
 //redis_content==NULL,reply==NULL，需要重连；命令错误，成功，不用重连
 //0错误重连,1成功不重连，2错误不重连
 int Rcommand(RedisClient* rc, const char* cmd,
-            redisReply* reply, bool free_reply=true);
+            redisReply*& reply, bool free_reply=true);
 int Rhsetnx(RedisClient* rc, const char* cmd, 
-            redisReply* reply, bool free_reply=true);
+            redisReply*& reply, bool free_reply=true);
 int Rhmset(RedisClient* rc, const char* cmd, 
-            redisReply* reply, bool free_reply=true);
+            redisReply*& reply, bool free_reply=true);
 int Rexists(RedisClient* rc, const char* cmd, 
-            redisReply* reply, bool free_reply=true);
+            redisReply*& reply, bool free_reply=true);
+int Rhset(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+int Rhget(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
 
 }
 }

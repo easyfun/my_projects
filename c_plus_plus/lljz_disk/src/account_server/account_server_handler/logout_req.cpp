@@ -3,7 +3,7 @@
 namespace lljz {
 namespace disk {
 
-void ModifyLoginPasswordReq(RequestPacket* req,
+void LogoutReq(RequestPacket* req,
 void* args, ResponsePacket* resp) {
     Document req_doc;
     Document resp_doc;
@@ -36,32 +36,20 @@ void* args, ResponsePacket* resp) {
         return;
     }
 
-    //检查old_password
-    if (!req_doc.HasMember("old_password") || !req_doc["old_password"].IsString()) {
+    //检查password
+    if (!req_doc.HasMember("password") || !req_doc["password"].IsString()) {
         resp->error_code_=20001;
-        resp_error_msg="old_password is invalid";
+        resp_error_msg="password is invalid";
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
 
         resp_json.Accept(resp_writer);
         sprintf(resp->data_,"%s",resp_buffer.GetString());
         return;
     }
-    
-    //检查new_password
-    if (!req_doc.HasMember("new_password") || !req_doc["new_password"].IsString()) {
+   
+    if (0==req_doc["password"].GetStringLength()) {
         resp->error_code_=20001;
-        resp_error_msg="new_password is invalid";
-        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
-
-        resp_json.Accept(resp_writer);
-        sprintf(resp->data_,"%s",resp_buffer.GetString());
-        return;
-    }
-
-    if (0==req_doc["new_password"].GetStringLength() 
-        || 0==req_doc["old_password"].GetStringLength()) {
-        resp->error_code_=20001;
-        resp_error_msg="new_password,old_password can not be empty";
+        resp_error_msg="password is invalid";
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
 
         resp_json.Accept(resp_writer);
@@ -69,31 +57,11 @@ void* args, ResponsePacket* resp) {
         return;
     }
 
-    //判断账号是否存在
     RedisClient* rc=REDIS_CLIENT_MANAGER.GetRedisClient();
     char cmd[512];
-    sprintf(cmd,"EXISTS %s", req_doc["account"].GetString());
     redisReply* reply;
-    int cmd_ret=Rexists(rc,cmd,reply);
-    if (SUCCESS_ACTIVE != cmd_ret) {
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
-
-        if (FAILED_ACTIVE==cmd_ret) {
-            resp->error_code_=20003;
-            resp_error_msg="account does not exist";
-        } else {
-            resp->error_code_=20002;
-            resp_error_msg="redis database server is busy";
-        }
-        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
-
-        resp_json.Accept(resp_writer);
-        sprintf(resp->data_,"%s",resp_buffer.GetString());
-        return;
-    }
-
     sprintf(cmd,"HGET %s password", req_doc["account"].GetString());
-    cmd_ret=Rhget(rc,cmd,reply,false);
+    int cmd_ret=Rhget(rc,cmd,reply,false);
     if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
         REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
         resp->error_code_=20002;
@@ -103,50 +71,30 @@ void* args, ResponsePacket* resp) {
         resp_json.Accept(resp_writer);
         sprintf(resp->data_,"%s",resp_buffer.GetString());
         return;
-    } else if (FAILED_ACTIVE==cmd_ret) {//没有字段password，允许直接设置密码
-    } else {
-        if (0!=strcmp(req_doc["old_password"].GetString(),reply->str)) {
-            REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
-            resp->error_code_=20005;
-            resp_error_msg="login password is wrong";
-            resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
+    } else if (FAILED_ACTIVE==cmd_ret) {//没有字段password
+        //记录异常日志
+        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+        resp->error_code_=20002;
+        resp_error_msg="redis database server status error";
+        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
 
-            resp_json.Accept(resp_writer);
-            sprintf(resp->data_,"%s",resp_buffer.GetString());
-            freeReplyObject(reply);
-            return;
-        }
+        resp_json.Accept(resp_writer);
+        sprintf(resp->data_,"%s",resp_buffer.GetString());
+        return;
+    }
+
+    if (0!=strcmp(req_doc["password"].GetString(),reply->str)) {
+        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+        resp->error_code_=20005;
+        resp_error_msg="login password is wrong";
+        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
+
+        resp_json.Accept(resp_writer);
+        sprintf(resp->data_,"%s",resp_buffer.GetString());
+        freeReplyObject(reply);
+        return;
     }
     freeReplyObject(reply);
-    if (0==strcmp(req_doc["old_password"].GetString(),
-                req_doc["new_password"].GetString()) ) {//新密码不变
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,true);
-
-        resp->error_code_=0;
-        resp_error_msg="";
-        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
-
-        resp_json.Accept(resp_writer);
-        sprintf(resp->data_,"%s",resp_buffer.GetString());
-        return;
-    }
-
-    memset(cmd,0,sizeof(cmd));
-    sprintf(cmd,"HSET %s password %s",
-        req_doc["account"].GetString(),
-        req_doc["new_password"].GetString());
-    cmd_ret=Rhset(rc,cmd,reply);
-    if (SUCCESS_ACTIVE != cmd_ret) {
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
-
-        resp->error_code_=20006;
-        resp_error_msg="modify login password fail";
-        resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
-
-        resp_json.Accept(resp_writer);
-        sprintf(resp->data_,"%s",resp_buffer.GetString());
-        return;
-    }
 
     REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,true);
 
@@ -157,6 +105,7 @@ void* args, ResponsePacket* resp) {
     resp_json.Accept(resp_writer);
     sprintf(resp->data_,"%s",resp_buffer.GetString());
 }
+
 
 }
 }
