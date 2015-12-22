@@ -3,7 +3,7 @@
 namespace lljz {
 namespace disk {
 
-void LoginReq(RequestPacket* req,
+void DeleteFileOrFolderReq(RequestPacket* req,
 void* args, ResponsePacket* resp) {
     Document req_doc;
     Document resp_doc;
@@ -57,13 +57,13 @@ void* args, ResponsePacket* resp) {
         return;
     }
 
-    RedisClient* rc=g_account_redis->GetRedisClient();
+    RedisClient* rc=REDIS_CLIENT_MANAGER.GetRedisClient();
     char cmd[512];
     redisReply* reply;
     sprintf(cmd,"HGET %s password", req_doc["account"].GetString());
     int cmd_ret=Rhget(rc,cmd,reply,false);
     if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
-        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
+        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
         resp->error_code_=20002;
         resp_error_msg="redis database server is busy";
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
@@ -73,7 +73,7 @@ void* args, ResponsePacket* resp) {
         return;
     } else if (FAILED_ACTIVE==cmd_ret) {//没有字段password
         //记录异常日志
-        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
+        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
         resp->error_code_=20002;
         resp_error_msg="redis database server status error";
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
@@ -84,7 +84,7 @@ void* args, ResponsePacket* resp) {
     }
 
     if (0!=strcmp(req_doc["password"].GetString(),reply->str)) {
-        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
+        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
         resp->error_code_=20005;
         resp_error_msg="login password is wrong";
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
@@ -96,7 +96,7 @@ void* args, ResponsePacket* resp) {
     }
     freeReplyObject(reply);
 
-    g_account_redis->ReleaseRedisClient(rc,true);
+    REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,true);
 
     resp->error_code_=0;
     resp_error_msg="";

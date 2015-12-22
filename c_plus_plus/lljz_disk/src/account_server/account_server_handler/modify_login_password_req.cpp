@@ -70,13 +70,13 @@ void* args, ResponsePacket* resp) {
     }
 
     //判断账号是否存在
-    RedisClient* rc=REDIS_CLIENT_MANAGER.GetRedisClient();
+    RedisClient* rc=g_account_redis->GetRedisClient();
     char cmd[512];
     sprintf(cmd,"EXISTS %s", req_doc["account"].GetString());
     redisReply* reply;
     int cmd_ret=Rexists(rc,cmd,reply);
     if (SUCCESS_ACTIVE != cmd_ret) {
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
 
         if (FAILED_ACTIVE==cmd_ret) {
             resp->error_code_=20003;
@@ -95,7 +95,7 @@ void* args, ResponsePacket* resp) {
     sprintf(cmd,"HGET %s password", req_doc["account"].GetString());
     cmd_ret=Rhget(rc,cmd,reply,false);
     if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
         resp->error_code_=20002;
         resp_error_msg="redis database server is busy";
         resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
@@ -106,7 +106,7 @@ void* args, ResponsePacket* resp) {
     } else if (FAILED_ACTIVE==cmd_ret) {//没有字段password，允许直接设置密码
     } else {
         if (0!=strcmp(req_doc["old_password"].GetString(),reply->str)) {
-            REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+            g_account_redis->ReleaseRedisClient(rc,cmd_ret);
             resp->error_code_=20005;
             resp_error_msg="login password is wrong";
             resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
@@ -120,7 +120,7 @@ void* args, ResponsePacket* resp) {
     freeReplyObject(reply);
     if (0==strcmp(req_doc["old_password"].GetString(),
                 req_doc["new_password"].GetString()) ) {//新密码不变
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,true);
+        g_account_redis->ReleaseRedisClient(rc,true);
 
         resp->error_code_=0;
         resp_error_msg="";
@@ -137,7 +137,7 @@ void* args, ResponsePacket* resp) {
         req_doc["new_password"].GetString());
     cmd_ret=Rhset(rc,cmd,reply);
     if (SUCCESS_ACTIVE != cmd_ret) {
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
 
         resp->error_code_=20006;
         resp_error_msg="modify login password fail";
@@ -148,7 +148,7 @@ void* args, ResponsePacket* resp) {
         return;
     }
 
-    REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,true);
+    g_account_redis->ReleaseRedisClient(rc,true);
 
     resp->error_code_=0;
     resp_error_msg="";

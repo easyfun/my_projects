@@ -1,4 +1,4 @@
-#include "access_server.hpp"
+#include "file_server.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
 #include "business_packet.hpp"
@@ -8,16 +8,16 @@ using namespace tbnet;
 namespace lljz {
 namespace disk {
 
-BusinessServer::BusinessServer()
+FileServer::FileServer()
 :conn_manager_to_srv_(NULL) {
     clientDisconnThrowPackets_=0;
     queueThreadTimeoutThrowPackets_=0;
 }
 
-BusinessServer::~BusinessServer() {
+FileServer::~FileServer() {
 }
 
-void BusinessServer::Start() {
+void FileServer::Start() {
     if (Initialize()) {
         return;
     }
@@ -25,7 +25,7 @@ void BusinessServer::Start() {
     //process thread
     task_queue_thread_.start();
 
-    conn_manager_to_srv_=new ConnectionManagerToServer(
+/*    conn_manager_to_srv_=new ConnectionManagerToServer(
         &to_server_transport_,&packet_streamer_,this);
     
     if (!conn_manager_to_srv_->start()) {
@@ -33,7 +33,7 @@ void BusinessServer::Start() {
         Stop();
         return;
     }
-
+*/
     //transport
     char spec[32];
     bool ret=true;
@@ -57,20 +57,20 @@ void BusinessServer::Start() {
     }
 
     task_queue_thread_.wait();
-    conn_manager_to_srv_->wait();
+//    conn_manager_to_srv_->wait();
     from_client_transport_.wait();
     to_server_transport_.wait();
     Destroy();
 }
 
-void BusinessServer::Stop() {
+void FileServer::Stop() {
     task_queue_thread_.stop();
-    conn_manager_to_srv_->stop();
+//    conn_manager_to_srv_->stop();
     from_client_transport_.stop();
     to_server_transport_.stop();
 }
 
-int BusinessServer::Initialize() {
+int FileServer::Initialize() {
     //packet_streamer
     packet_streamer_.setPacketFactory(&packet_factory_);
 
@@ -80,19 +80,19 @@ int BusinessServer::Initialize() {
     return EXIT_SUCCESS;
 }
 
-int BusinessServer::Destroy() {
-    if (conn_manager_to_srv_) {
+int FileServer::Destroy() {
+/*    if (conn_manager_to_srv_) {
         delete conn_manager_to_srv_;
-    }
+    }*/
     return EXIT_SUCCESS;
 }
 
 tbnet::IPacketHandler::HPRetCode 
-BusinessServer::handlePacket(
+FileServer::handlePacket(
 tbnet::Connection *connection, 
 tbnet::Packet *packet) {
     TBSYS_LOG(DEBUG,"%s",
-        "BusinessServer::handlePacket");
+        "FileServer::handlePacket");
 
     if (!packet->isRegularPacket()) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
@@ -110,10 +110,10 @@ tbnet::Packet *packet) {
     return tbnet::IPacketHandler::KEEP_CHANNEL;
 }
 
-bool BusinessServer::handlePacketQueue(
+bool FileServer::handlePacketQueue(
 tbnet::Packet * apacket, void *args) {
     TBSYS_LOG(DEBUG,"%s",
-        "BusinessServer::handlePacketQueue");
+        "FileServer::handlePacketQueue");
     return true;
     BasePacket *packet = (BasePacket *) apacket;
     tbnet::Connection* conn=packet->get_connection();
@@ -152,10 +152,10 @@ tbnet::Packet * apacket, void *args) {
 }
 
 //收到业务应答包事件处理
-bool BusinessServer::BusinessHandlePacket(
+bool FileServer::BusinessHandlePacket(
 tbnet::Packet *packet, void *args) {
     TBSYS_LOG(DEBUG,"%s",
-        "BusinessServer::BusinessHandlePacket");
+        "FileServer::BusinessHandlePacket");
     ResponsePacket* resp=NULL;
     AccessPacket *access_req=NULL;
     tbnet::Connection* conn=NULL;

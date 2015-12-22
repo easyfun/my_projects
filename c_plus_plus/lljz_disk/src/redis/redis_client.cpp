@@ -183,8 +183,7 @@ redisReply*& reply, bool free_reply) {
     TBSYS_LOG(DEBUG,"type=%d,integer=%d",reply->type, reply->integer);
 
     int ret=FAILED_ACTIVE;
-    if (REDIS_REPLY_INTEGER==reply->type 
-        && 0==reply->integer) {
+    if (REDIS_REPLY_INTEGER==reply->type) {
         ret=SUCCESS_ACTIVE;
     }
 
@@ -232,6 +231,120 @@ redisReply*& reply, bool free_reply) {
     TBSYS_LOG(DEBUG,"ret=%d",ret);
     return ret;
 }
+
+int Rsadd(RedisClient* rc, const char* cmd, 
+redisReply*& reply, bool free_reply) {
+    if (NULL==rc) {
+        TBSYS_LOG(DEBUG,"NULL==rc");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    if (NULL==rc->redis_context_) {
+        TBSYS_LOG(DEBUG,"NULL==rc->redis_context_");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    TBSYS_LOG(DEBUG,"cmd=%s", cmd);
+    if (0!=strncasecmp("SADD ",cmd,5)) {
+        TBSYS_LOG(DEBUG,"not SADD");
+        return FAILED_ACTIVE;
+    }
+
+    reply=(redisReply* )redisCommand(rc->redis_context_,cmd);
+    if (NULL==reply) {
+        TBSYS_LOG(DEBUG,"NULL==reply");
+        return FAILED_NOT_ACTIVE;
+    }
+    TBSYS_LOG(DEBUG,"type=%d,integer=%d",reply->type, reply->integer);
+
+    int ret=FAILED_ACTIVE;
+    if (REDIS_REPLY_INTEGER==reply->type 
+        && 1==reply->integer) {
+        ret=SUCCESS_ACTIVE;
+    }
+
+    if (free_reply) {
+        freeReplyObject(reply);
+    }
+    TBSYS_LOG(DEBUG,"ret=%d",ret);
+    return ret;
+}
+
+int Rspop(RedisClient* rc, const char* cmd, 
+redisReply*& reply, bool free_reply) {
+    if (NULL==rc) {
+        TBSYS_LOG(DEBUG,"NULL==rc");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    if (NULL==rc->redis_context_) {
+        TBSYS_LOG(DEBUG,"NULL==rc->redis_context_");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    TBSYS_LOG(DEBUG,"cmd=%s", cmd);
+    if (0!=strncasecmp("SPOP ",cmd,5)) {
+        TBSYS_LOG(DEBUG,"not SPOP");
+        return FAILED_ACTIVE;
+    }
+
+    reply=(redisReply* )redisCommand(rc->redis_context_,cmd);
+    if (NULL==reply) {
+        TBSYS_LOG(DEBUG,"NULL==reply");
+        return FAILED_NOT_ACTIVE;
+    }
+    TBSYS_LOG(DEBUG,"type=%d,str=%d",reply->type, reply->str);
+
+    int ret=FAILED_ACTIVE;
+    if (REDIS_REPLY_STRING==reply->type) {
+        ret=SUCCESS_ACTIVE;
+    }
+
+    if (free_reply) {
+        freeReplyObject(reply);
+    }
+    TBSYS_LOG(DEBUG,"ret=%d",ret);
+    return ret;
+}
+
+
+int Rsunionstore(RedisClient* rc, const char* cmd, 
+redisReply*& reply, bool free_reply) {
+    if (NULL==rc) {
+        TBSYS_LOG(DEBUG,"NULL==rc");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    if (NULL==rc->redis_context_) {
+        TBSYS_LOG(DEBUG,"NULL==rc->redis_context_");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    TBSYS_LOG(DEBUG,"cmd=%s", cmd);
+    if (0!=strncasecmp("SUNIONSTORE ",cmd,12)) {
+        TBSYS_LOG(DEBUG,"not SUNIONSTORE");
+        return FAILED_ACTIVE;
+    }
+
+    reply=(redisReply* )redisCommand(rc->redis_context_,cmd);
+    if (NULL==reply) {
+        TBSYS_LOG(DEBUG,"NULL==reply");
+        return FAILED_NOT_ACTIVE;
+    }
+    TBSYS_LOG(DEBUG,"type=%d,integer=%d",reply->type, reply->integer);
+
+    int ret=FAILED_ACTIVE;
+    if (REDIS_REPLY_INTEGER==reply->type && reply->integer>=1) {
+        ret=SUCCESS_ACTIVE;
+    }
+
+    if (free_reply) {
+        freeReplyObject(reply);
+    }
+    TBSYS_LOG(DEBUG,"ret=%d",ret);
+    return ret;
+}
+
 
 }
 }

@@ -84,13 +84,13 @@ void* args, ResponsePacket* resp) {
         return;
     }
     //判断账号是否存在
-    RedisClient* rc=REDIS_CLIENT_MANAGER.GetRedisClient();
+    RedisClient* rc=g_account_redis->GetRedisClient();
     char cmd[512];
     sprintf(cmd,"EXISTS %s", req_account.c_str());
         redisReply* reply;
     int cmd_ret=Rexists(rc,cmd,reply);
     if (SUCCESS_ACTIVE != cmd_ret) {
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
 
         if (FAILED_ACTIVE==cmd_ret) {
             resp->error_code_=20003;
@@ -124,7 +124,7 @@ void* args, ResponsePacket* resp) {
     strcat(cmd,fv);
     cmd_ret=Rhmset(rc,cmd,reply);
     if (SUCCESS_ACTIVE != cmd_ret) {
-        REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,cmd_ret);
+        g_account_redis->ReleaseRedisClient(rc,cmd_ret);
 
         if (FAILED_ACTIVE==cmd_ret) {
             resp->error_code_=20004;
@@ -141,7 +141,7 @@ void* args, ResponsePacket* resp) {
         return;
     }
 
-    REDIS_CLIENT_MANAGER.ReleaseRedisClient(rc,true);
+    g_account_redis->ReleaseRedisClient(rc,true);
 
     resp->error_code_=0;
     resp_error_msg="";

@@ -9,14 +9,14 @@
 namespace lljz {
 namespace disk {
 
-#define REDIS_CLIENT_MANAGER lljz::disk::RedisClientManager::GetRedisClientManager()
+//#define REDIS_CLIENT_MANAGER lljz::disk::RedisClientManager::GetRedisClientManager()
 
 class RedisClientManager : tbsys::Runnable {
 public:
     RedisClientManager();
     ~RedisClientManager();
 
-    bool start();
+    bool start(const char* redis_section);
     bool stop();
     bool wait();
     void destroy();
@@ -29,7 +29,7 @@ public:
     RedisClient* GetRedisClient();
     void ReleaseRedisClient(RedisClient* rc, bool active);
 
-    static RedisClientManager& GetRedisClientManager();
+//    static RedisClientManager& GetRedisClientManager();
 
 private:
     bool stop_;

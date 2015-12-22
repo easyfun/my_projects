@@ -25,12 +25,12 @@ JSON_LIB=$(RAPIDJSON_LIB)
 PROJECT_INC=-I../packets -I../protocol -I../utility
 VPATH=../packets ../utility
 
-OUTPUT_PATH=../../output/business_server
+OUTPUT_PATH=../../output/file_server
 
-all:business_server
-.PHONY:business_server
+all:file_server
+.PHONY:file_server
 
-business_server:main.o business_server.o global.o connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o
+file_server:main.o file_server.o global.o connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o
 	cd $(OUTPUT_PATH) && \
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) $(JSON_LIB) -lpthread -lrt
@@ -39,8 +39,8 @@ main.o:main.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) -lpthread -lrt
 
-#business_server.o:business_server.cpp business_server.hpp base_packet.hpp packet_factory.hpp request_packet.hpp response_packet.hpp
-business_server.o:business_server.cpp
+#file_server.o:file_server.cpp file_server.hpp base_packet.hpp packet_factory.hpp request_packet.hpp response_packet.hpp
+file_server.o:file_server.cpp
 	echo $(CXXCOMPILE)
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)

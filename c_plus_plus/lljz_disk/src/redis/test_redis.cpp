@@ -142,13 +142,54 @@ void test_Rhget(RedisClientManager* manager) {
     manager->ReleaseRedisClient(rc,true);
 }
 
+void test_Rsunionstore(RedisClientManager* manager) {
+    RedisClient* rc=manager->GetRedisClient();
+    int64_t start,end;
+    redisReply* reply;
+    char cmd[512];
+    int cmd_ret;
+    start=tbsys::CTimeUtil::getTime();
+    int i;
+    for (i=0;i<200000;i++) {
+        sprintf(cmd,"SADD global_file_id_sets %d",i);
+        cmd_ret=Rsadd(rc, cmd, reply);
+        if (SUCCESS_ACTIVE != cmd_ret) {
+            manager->ReleaseRedisClient(rc, cmd_ret);
+            printf("SADD fail\n");
+            return;
+        }
+    }
+    end=tbsys::CTimeUtil::getTime();
+    printf("SADD %d records,time=%lld\n",i,end-start);
+
+    sprintf(cmd,"%s","SUNIONSTORE file_id_sets global_file_id_sets");
+    start=tbsys::CTimeUtil::getTime();
+    cmd_ret=Rsunionstore(rc, cmd, reply);
+    printf("cmd_ret=%d\n",cmd_ret);
+    if (SUCCESS_ACTIVE != cmd_ret) {
+        manager->ReleaseRedisClient(rc, cmd_ret);
+        return;
+    }
+    end=tbsys::CTimeUtil::getTime();
+    printf("SUNIONSTORE,time=%lld\n",end-start);
+    manager->ReleaseRedisClient(rc,true);
+}
+
 int main(int argc,char* argv[]) {
     if(TBSYS_CONFIG.load("test.ini")) {
         printf("load test.ini fail");
         return -1;
     }
+
+    const char* sz_log_level = TBSYS_CONFIG.getString(
+    "public", "log_level", "info");
+    TBSYS_LOGGER.setLogLevel(sz_log_level);
+
     RedisClientManager redis_client_manager;
-    redis_client_manager.start();
+    if (!redis_client_manager.start("redis")) {
+        printf("start redis_client_manager fail\n");
+        return -1;
+    }
     sleep(3);
 
 //    test_ping(&redis_client_manager);
@@ -158,7 +199,8 @@ int main(int argc,char* argv[]) {
 //    test_Rhsetnx(&redis_client_manager);
 //    test_Rhsetnx(&redis_client_manager);
 //    test_Rhmset(&redis_client_manager);
-    test_Rhget(&redis_client_manager);
+//    test_Rhget(&redis_client_manager);
+    test_Rsunionstore(&redis_client_manager);
 
     redis_client_manager.stop();
     redis_client_manager.wait();

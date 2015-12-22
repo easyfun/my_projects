@@ -40,6 +40,14 @@ int Rhset(RedisClient* rc, const char* cmd,
 int Rhget(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
 
+//集合sets
+int Rsadd(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+int Rspop(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+int Rsunionstore(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+
 }
 }
 

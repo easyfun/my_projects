@@ -10,12 +10,11 @@
 namespace lljz {
 namespace disk {
 
-class BusinessServer : public tbnet::IServerAdapter,
-public tbnet::IPacketQueueHandler,
-public IBusinessPacketHandler {
+class FileServer : public tbnet::IServerAdapter,
+public tbnet::IPacketQueueHandler {
 public:
-    BusinessServer();
-    ~BusinessServer();
+    FileServer();
+    ~FileServer();
 
     void Start();
     void Stop();

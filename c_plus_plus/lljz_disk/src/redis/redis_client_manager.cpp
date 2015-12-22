@@ -3,7 +3,9 @@
 namespace lljz {
 namespace disk {
 
+/*
 static RedisClientManager g_redis_client_manager;
+*/
 
 RedisClientManager::RedisClientManager() {
     stop_=false;
@@ -13,27 +15,28 @@ RedisClientManager::~RedisClientManager() {
 
 }
 
-bool RedisClientManager::start() {
-    redis_client_num_=TBSYS_CONFIG.getInt("redis","client_num",0);
+bool RedisClientManager::start(const char* redis_section) {
+    assert(redis_section && redis_section[0]);
+    redis_client_num_=TBSYS_CONFIG.getInt(redis_section,"client_num",0);
     if (0 >= redis_client_num_) {
         redis_client_num_=0;
         return true;
     }
 
-    redis_connect_time_out_=TBSYS_CONFIG.getInt("redis",
+    redis_connect_time_out_=TBSYS_CONFIG.getInt(redis_section,
         "connect_time_out",1000);
     if (redis_connect_time_out_ <= 0) {
         redis_connect_time_out_=1000;
     }
 
-    redis_port_=TBSYS_CONFIG.getInt("redis",
+    redis_port_=TBSYS_CONFIG.getInt(redis_section,
         "port",6379);
 
-    const char* str_config_value=TBSYS_CONFIG.getString("redis",
+    const char* str_config_value=TBSYS_CONFIG.getString(redis_section,
         "host","");
     sprintf(redis_host_,"%s",str_config_value);
 
-    redis_index_=TBSYS_CONFIG.getInt("redis",
+    redis_index_=TBSYS_CONFIG.getInt(redis_section,
         "index",0);
     if (redis_index_<0 || redis_index_>15) {
         redis_index_=0;
@@ -210,9 +213,10 @@ RedisClient* rc, bool active) {
     reconn_mutex_.unlock();
 }
 
+/*
 RedisClientManager& RedisClientManager::GetRedisClientManager() {
     return g_redis_client_manager;
-}
+}*/
 
 }
 }

@@ -1,13 +1,13 @@
-#ifndef LLJZ_DISK_ACCOUNT_HANDLER_H
-#define LLJZ_DISK_ACCOUNT_HANDLER_H
+#ifndef LLJZ_DISK_FILE_SERVER_HANDLER_H
+#define LLJZ_DISK_FILE_SERVER_HANDLER_H
 
 #include "rapidjson/document.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
-#include "base_packet.hpp"
 #include "public_echo_test_req_handler.h"
 #include "handler_router.hpp"
+#include "base_packet.hpp"
 #include "request_packet.hpp"
 #include "response_packet.hpp"
 #include "redis_client.h"
@@ -40,42 +40,39 @@ void StopHandler();
 /**************************************
  * handler
 **************************************/
-//M:ACCOUNT_SERVER_REGISTER_ACCOUNT_REQ
-//注册账号
-void RegisterAccountReq(RequestPacket* req,
+//新建文件夹
+//M:FILE_SERVER_CREATE_FOLDER_REQ=1000
+void CreateFolderReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
 
-
-//M:ACCOUNT_SERVER_SET_ACCOUNT_INFO_REQ
-//设置账号信息
-void SetAccountInfoReq(RequestPacket* req,
-    void* args, 
+//修改文件/文件夹属性
+//FILE_SERVER_MODIFY_PROPERTY_REQ=1002,
+void ModifyPropertyReq(RequestPacket* req,
+    void* args,
     ResponsePacket* resp);
 
-
-//M:ACCOUNT_SERVER_MODIFY_LOGIN_PASSWORD_REQ
-//修改登陆密码
-void ModifyLoginPasswordReq(RequestPacket* req,
-    void* args, 
+//上传文件
+//FILE_SERVER_UPLOAD_FILE_REQ=1004,
+void UploadFileReq(RequestPacket* req,
+    void* args,
     ResponsePacket* resp);
 
-
-//M:ACCOUNT_SERVER_LOGIN_REQ
-//登陆
-void LoginReq(RequestPacket* req,
-    void* args, 
+//下载文件
+//FILE_SERVER_DOWNLOAD_FILE_REQ=1006,
+void DownloadFileReq(RequestPacket* req,
+    void* args,
     ResponsePacket* resp);
 
-
-//M:ACCOUNT_SERVER_LOGOUT_REQ
-//退出
-void LogoutReq(RequestPacket* req,
-    void* args, 
+//删除文件/文件夹
+//FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ=1008,
+void DeleteFileOrFolderReq(RequestPacket* req,
+    void* args,
     ResponsePacket* resp);
 
+//注册handler
+void RegisterHandler();
 
 }
 }
-
 #endif
