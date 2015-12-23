@@ -92,8 +92,9 @@ void* args, ResponsePacket* resp) {
 
     //增加账号文件夹Hash表,使用file_redis
     //为新文件夹增加hash表
-    sprintf(cmd,"HSETNX folder_%s create_time %lld", 
+    sprintf(cmd,"HSETNX folder_%s %c_create_time %lld",
         req_doc["account"].GetString(), 
+        0x02, 
         tbsys::CTimeUtil::getTime());
     RedisClient* file_rc=g_file_redis->GetRedisClient();
     cmd_ret=Rhsetnx(file_rc,cmd,reply);

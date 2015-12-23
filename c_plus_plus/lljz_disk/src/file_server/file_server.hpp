@@ -5,6 +5,7 @@
 #include "tbnet.h"
 #include "packet_factory.hpp"
 #include "connection_manager_to_server.hpp"
+#include "connection_manager_from_client.hpp"
 #include "ibusiness_packet_handler.h"
 
 namespace lljz {
@@ -48,6 +49,8 @@ private:
     uint64_t queueThreadTimeoutThrowPackets_;   // PacketQueueThread排队超时丢弃的请求包数
 
     ConnectionManagerToServer* conn_manager_to_srv_;
+    ConnectionManagerFromClient conn_manager_from_client_;
+
 };
 
 }

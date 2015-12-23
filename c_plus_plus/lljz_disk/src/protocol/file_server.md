@@ -57,8 +57,8 @@ M:FILE_SERVER_MODIFY_PROPERTY_REQ
         "account":"lljzfly",//账号名
         "password":"trxh",//密码
         "type":0,//0目录，1文件
-        "src_name":"",
-        "dest_name":""
+        "src_name":"/life/happy",
+        "dest_name":"nice"
     }
 应答消息id:1003
 应答:

@@ -21,19 +21,26 @@ RAPIDJSON_INC=-I/home/lljz/my_projects/rapidjson/include
 RAPIDJSON_LIB=
 JSON_INC=$(RAPIDJSON_INC)
 JSON_LIB=$(RAPIDJSON_LIB)
+REDIS_INC=-I/home/lljz/lib/hiredis/include
+REDIS_LIB=/home/lljz/lib/hiredis/lib/libhiredis.a
 
-PROJECT_INC=-I../packets -I../protocol -I../utility
-VPATH=../packets ../utility
+PROJECT_INC=-I../packets -I../protocol -I../utility -I../public_handler -I./file_server_handler -I../redis
+VPATH=../packets ../utility ./file_server_handler ../public_handler ../redis
 
 OUTPUT_PATH=../../output/file_server
 
 all:file_server
 .PHONY:file_server
 
-file_server:main.o file_server.o global.o connection_manager_to_server.o load_connection_manager.o packet_handler_to_server.o
+file_server:main.o file_server.o global.o connection_manager_to_server.o \
+load_connection_manager.o packet_handler_to_server.o handler_router.o \
+public_echo_test_req_handler.o redis_client.o redis_client_manager.o \
+file_server_handler.o create_folder_req.o connection_manager_from_client.o \
+modify_property_req.o
 	cd $(OUTPUT_PATH) && \
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
-		$^ $(TBSDK_INC) $(TBSDK_LIB) $(JSON_LIB) -lpthread -lrt
+		$^ $(TBSDK_INC) $(TBSDK_LIB) $(JSON_LIB) \
+		$(REDIS_LIB) -lpthread -lrt
 
 main.o:main.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
@@ -41,17 +48,18 @@ main.o:main.cpp
 
 #file_server.o:file_server.cpp file_server.hpp base_packet.hpp packet_factory.hpp request_packet.hpp response_packet.hpp
 file_server.o:file_server.cpp
-	echo $(CXXCOMPILE)
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
-		$^ $(TBSDK_INC) $(PROJECT_INC)
+		$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) $(REDIS_INC)
 
 global.o:global.cpp
-	echo "compile global.cpp"
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)
 
 connection_manager_to_server.o:connection_manager_to_server.cpp
-	echo "compile connection_manager_to_server.cpp"
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
+
+connection_manager_from_client.o:connection_manager_from_client.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
 		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
 
@@ -61,6 +69,38 @@ load_connection_manager.o:load_connection_manager.cpp
 		$^ $(TBSDK_INC) $(PROJECT_INC)
 
 packet_handler_to_server.o:packet_handler_to_server.cpp
-	echo "compile packet_handler_to_server.cpp"
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC)
+
+handler_router.o:handler_router.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
+		$^ $(TBSDK_INC) $(PROJECT_INC)
+
+public_echo_test_req_handler.o:public_echo_test_req_handler.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
+		$^ $(TBSDK_INC) $(PROJECT_INC)
+
+redis_client_manager.o:redis_client_manager.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+redis_client.o:redis_client.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+file_server_handler.o:file_server_handler.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+create_folder_req.o:create_folder_req.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+modify_property_req.o:modify_property_req.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)

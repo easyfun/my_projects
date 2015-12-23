@@ -29,15 +29,19 @@ struct RedisClient {
 //0错误重连,1成功不重连，2错误不重连
 int Rcommand(RedisClient* rc, const char* cmd,
             redisReply*& reply, bool free_reply=true);
+int Rexists(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+
+//hash
 int Rhsetnx(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
 int Rhmset(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
-int Rexists(RedisClient* rc, const char* cmd, 
-            redisReply*& reply, bool free_reply=true);
 int Rhset(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
 int Rhget(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+int Rhdel(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
 
 //集合sets

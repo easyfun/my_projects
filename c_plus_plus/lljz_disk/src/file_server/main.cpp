@@ -4,16 +4,16 @@
 #include <stdlib.h>
 #include <tbsys.h>
 #include <tbnet.h>
-#include "business_server.hpp"
+#include "file_server.hpp"
 
-lljz::disk::BusinessServer* bns_srv = NULL;
+lljz::disk::FileServer* file_srv = NULL;
 
 void sign_handler(int sig) {
   switch (sig) {
   case SIGTERM:
   case SIGINT:
-    if(bns_srv != NULL) {
-      bns_srv->Stop();
+    if(file_srv != NULL) {
+      file_srv->Stop();
     }
     break;
   case 40:
@@ -66,16 +66,16 @@ int main(int argc, char *argv[])
   // parse cmd
   parse_cmd_line(argc, argv);
   char config_file[64];
-  sprintf(config_file,"%s","./business_server.ini");
+  sprintf(config_file,"%s","./file_server.ini");
   if(TBSYS_CONFIG.load(config_file)) {
     fprintf(stderr, "load file %s error\n", config_file);
     return EXIT_FAILURE;
   }
 
   const char* sz_pid_file = TBSYS_CONFIG.getString(
-    "server", "pid_file", "business_server.pid");
+    "server", "pid_file", "file_server.pid");
   const char* sz_log_file = TBSYS_CONFIG.getString(
-    "server", "log_file", "business_server.log");
+    "server", "log_file", "file_server.log");
   if(1) {
     char* p, dir_path[256];
     sprintf(dir_path, "%s", sz_pid_file);
@@ -117,15 +117,15 @@ int main(int argc, char *argv[])
     signal(41, sign_handler);
     signal(42, sign_handler);
 
-    bns_srv = new lljz::disk::BusinessServer();
-    bns_srv->Start();
+    file_srv = new lljz::disk::FileServer();
+    file_srv->Start();
 
-    // ignore signal when destroy, cause sig_handler may use bns_srv between delete and set it to NULL.
+    // ignore signal when destroy, cause sig_handler may use file_srv between delete and set it to NULL.
     signal(SIGINT, SIG_IGN);
     signal(SIGTERM, SIG_IGN);
 
-    delete bns_srv;
-    bns_srv = NULL;
+    delete file_srv;
+    file_srv = NULL;
 
     TBSYS_LOG(ERROR,"%s\n","exit program.");
   }

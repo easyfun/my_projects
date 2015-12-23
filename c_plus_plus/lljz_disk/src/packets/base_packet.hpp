@@ -63,14 +63,14 @@ enum {
 };
 
 //config_server
-enum {
+enum ConfigServerMsg{
    //获取服务列表
    CONFIG_SERVER_GET_SERVICE_LIST_REQ=1000,
    CONFIG_SERVER_GET_SERVICE_LIST_RESP=1001
 };
 
 //account_server
-enum {
+enum AccountServerMsg {
    ACCOUNT_SERVER_REGISTER_ACCOUNT_REQ=1000,//注册账号
    ACCOUNT_SERVER_REGISTER_ACCOUNT_RESP=1001,
 
@@ -88,7 +88,7 @@ enum {
 };
 
 //file_server
-enum {
+enum FileServerMsg {
    //新建文件夹
    FILE_SERVER_CREATE_FOLDER_REQ=1000,
    FILE_SERVER_CREATE_FOLDER_RESP=1001,

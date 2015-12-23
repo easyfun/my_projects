@@ -36,6 +36,20 @@ void WaitHandler();
 void StopHandler();
 
 
+/**************************************
+ * 
+**************************************/
+bool CheckAuth(RequestPacket* req,
+    ResponsePacket* resp);
+
+void SetErrorMsg(uint32_t error_code, 
+    const char* error_msg, ResponsePacket* resp);
+
+int GetCharCount(const char* str, char c);
+
+void GetStrValue(const char* str, 
+    char c,int index, char* value);
+
 
 /**************************************
  * handler
@@ -51,7 +65,7 @@ void CreateFolderReq(RequestPacket* req,
 void ModifyPropertyReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
-
+/*
 //上传文件
 //FILE_SERVER_UPLOAD_FILE_REQ=1004,
 void UploadFileReq(RequestPacket* req,
@@ -69,9 +83,7 @@ void DownloadFileReq(RequestPacket* req,
 void DeleteFileOrFolderReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
-
-//注册handler
-void RegisterHandler();
+*/
 
 }
 }
