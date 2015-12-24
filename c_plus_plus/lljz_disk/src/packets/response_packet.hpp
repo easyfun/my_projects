@@ -7,7 +7,7 @@ namespace lljz {
 namespace disk {
 
 #define RESPONSE_PACKET_HEAD_LEN 28
-#define RESPONSE_PACKET_MAX_SIZE 4*8192
+#define RESPONSE_PACKET_MAX_SIZE 32768
 
 // [note] need free by manual
 class ResponsePacket : public BasePacket {

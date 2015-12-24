@@ -7,7 +7,7 @@ namespace lljz {
 namespace disk {
 
 #define REQUEST_PACKET_HEAD_LEN 28
-#define REQUEST_PACKET_MAX_SIZE 4096
+#define REQUEST_PACKET_MAX_SIZE 32768
 
 class RequestPacket : public BasePacket {
 public:

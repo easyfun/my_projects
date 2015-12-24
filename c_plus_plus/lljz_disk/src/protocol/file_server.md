@@ -69,6 +69,8 @@ M:FILE_SERVER_MODIFY_PROPERTY_REQ
 备注:
 
 
+//file_seq_no_lnd_name
+//文件tfs_name不消耗file_id_sets
 M:FILE_SERVER_UPLOAD_FILE_REQ
 功能说明:上传文件
 请求消息id:1004
@@ -77,10 +79,11 @@ M:FILE_SERVER_UPLOAD_FILE_REQ
         "account":"lljzfly",//账号名
         "password":"trxh",//密码
         //"type":1,
-        "name":"",
-        "offset":0,
-        "length":100,
-        "flag":1//0完成，1还有数据等待上传
+        "file_name":"/life/practice_life.md",
+        //"tfs_name":"",
+        "seq_no":1,//文件分片序号，每片24KB
+        "length":100,//max 24KB
+        "data":""
     }
 应答消息id:1005
 应答:

@@ -8,7 +8,7 @@ namespace disk {
 **************************************/
 RedisClientManager* g_account_redis=NULL;
 RedisClientManager* g_file_redis=NULL;
-
+TfsClient* g_tfs_client=NULL;
 
 
 /**************************************
@@ -26,12 +26,21 @@ bool InitDatabase() {
     if (!g_file_redis->start("redis_file")) {
         return false;
     }
+
+    const char* nsip=TBSYS_CONFIG.getString("tfs_name_server",
+        "nsip","");
     return true;
 }
 
 bool InitHandler() {
     RegisterHandler();
     if (!InitDatabase()) {
+        return false;
+    }
+
+    g_tfs_client=TfsClient::Instance();
+    if (!g_tfs_client->initialize(nsip)) {
+        TBSYS_LOG(ERROR,"%s","TfsClient::initialize fail");
         return false;
     }
 
@@ -59,8 +68,8 @@ void RegisterHandler() {
     HANDLER_ROUTER.RegisterHandler(PUBLIC_ECHO_TEST_REQ,PublicEchoTestReqHandler);
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_CREATE_FOLDER_REQ,CreateFolderReq);
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_MODIFY_PROPERTY_REQ,ModifyPropertyReq);
-/*    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_UPLOAD_FILE_REQ,UploadFileReq);
-    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DOWNLOAD_FILE_REQ,DownloadFileReq);
+    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_UPLOAD_FILE_REQ,UploadFileReq);
+/*    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DOWNLOAD_FILE_REQ,DownloadFileReq);
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ,DeleteFileOrFolderReq);
     */
 }
@@ -179,6 +188,103 @@ void GetStrValue(const char* str, char c,int index, char* value) {
         value[tail-head]='\0';
     }
 }
+
+bool WriteFileToTFS(const char* data, int len, 
+char* tfs_file_name) {
+    int ret = 0;
+    int fd = -1;
+
+    // 创建tfs客户端，并打开一个新的文件准备写入 
+    fd = g_tfs_client->open((char*)NULL, NULL, NULL, T_WRITE);
+    if (fd <= 0) {
+        TBSYS_LOG(ERROR,"create remote file error!");
+        return false;
+    }
+    
+    int wrote = 0;
+    int left = len;
+    while (left > 0) {
+        // 将buffer中的数据写入tfs
+        ret = g_tfs_client->write(fd, data + wrote, left);
+        if (ret < 0 || ret >= left) {// 读写失败或完成
+            break;
+        } else {// 若ret>0，则ret为实际写入的数据量
+            wrote += ret;
+            left -= ret;
+        }
+    }
+
+    // 读写失败   
+    if (ret < 0) {
+        TBSYS_LOG(ERROR,"write data error!");
+        return false;
+    }
+
+    // 提交写入 
+    ret = g_tfs_client->close(fd, tfs_file_name, TFS_FILE_LEN);
+    if (ret != TFS_SUCCESS) {// 提交失败
+        TBSYS_LOG(ERROR,"write remote file failed! ret: %s", ret);
+        return false
+    } 
+    return true;
+}
+
+bool DownloadFileFromTFS(const char* tfs_file_name,
+char* data,int& len) {
+    int ret = 0;
+    int fd = -1;
+
+    // 打开待读写的文件
+    fd = g_tfs_client->open(tfs_file_name, NULL, T_READ);
+    if (ret != TFS_SUCCESS) {
+        TBSYS_LOG(ERROR,"open remote file %s error", tfs_file_name);
+        return false;
+    }
+
+    // 获得文件属性
+    TfsFileStat fstat;
+    ret = g_tfs_client->fstat(fd, &fstat);
+    if (ret != TFS_SUCCESS || fstat.size_ <= 0) {
+        TBSYS_LOG(ERROR,"get remote file info error");
+        return false;
+    }
+
+    if (fstat.size_ > 25165824) {//24KB
+        TBSYS_LOG(ERROR,"remote file size more than 24KB,fatal error");
+        return false;
+    } else if (fstat.size_ > len) {//24KB
+        TBSYS_LOG(ERROR,"the buffer is small");
+        return false;
+    }
+    len=fstat.size_;
+    
+    int read = 0;
+    uint32_t crc = 0;
+    
+    // 读取文件
+    while (read < fstat.size_) {
+        ret = g_tfs_client->read(fd, data + read, fstat.size_ - read);
+        if (ret < 0) {
+            break;
+        } else {
+            crc = Func::crc(crc, data + read, ret); // 对读取的文件计算crc值
+            read += ret;
+        }
+    }
+
+    if (ret < 0 || crc != fstat.crc_) {
+        TBSYS_LOG(ERROR,"read remote file error!");
+        return false;
+    }
+
+    ret = g_tfs_client->close(fd);
+    if (ret < 0) {
+        TBSYS_LOG(ERROR,"close remote file error!");
+        return false;
+    }
+    return true;
+}
+
 
 }
 }
