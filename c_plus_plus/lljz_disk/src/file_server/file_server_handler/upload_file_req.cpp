@@ -1,4 +1,4 @@
-#include "account_server_handler.h"
+#include "file_server_handler.h"
 
 namespace lljz {
 namespace disk {
@@ -29,7 +29,7 @@ void* args, ResponsePacket* resp) {
 
     if (!req_doc.HasMember("seq_no") 
         || !req_doc["seq_no"].IsInt()
-        || req_doc["seq_no"]<=0) {
+        || req_doc["seq_no"].GetInt()<=0) {
         SetErrorMsg(35001,"seq_no is invalid",resp);
         return;        
     }
@@ -70,10 +70,16 @@ void* args, ResponsePacket* resp) {
     }
 
     //是否存在根目录，父目录
+    char cmd[200];
+    int cmd_ret;
+    redisReply* reply;
+
     char father_name[200];
     char lnd_name[200];
     sprintf(father_name,"folder_%s",req_doc["account"].GetString());
     sprintf(cmd,"HGET %s %c_%s", father_name,0x02,"create_time");
+
+    RedisClient* file_rc=g_file_redis->GetRedisClient();
     cmd_ret=Rhget(file_rc,cmd,reply);
     if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
         g_file_redis->ReleaseRedisClient(file_rc,false);
@@ -82,7 +88,7 @@ void* args, ResponsePacket* resp) {
     } else if (FAILED_ACTIVE==cmd_ret) {//没有父目录
         //记录异常日志
         g_file_redis->ReleaseRedisClient(file_rc,true);
-        SetErrorMsg(35003,"path of root folder does not exist",resp);
+        SetErrorMsg(35003,"...cmd,path of root folder does not exist",resp);
         return;
     }
 
@@ -104,7 +110,7 @@ void* args, ResponsePacket* resp) {
             //记录异常日志
             g_file_redis->ReleaseRedisClient(file_rc,true);
             freeReplyObject(reply);
-            SetErrorMsg(35003,"path of parent folder does not exist",resp);
+            SetErrorMsg(35003,"++++,path of parent folder does not exist",resp);
             return;
         }
         //
@@ -112,16 +118,16 @@ void* args, ResponsePacket* resp) {
             //记录异常日志
             g_file_redis->ReleaseRedisClient(file_rc,true);
             freeReplyObject(reply);
-            SetErrorMsg(35003,"path of parent folder does not exist",resp);
+            SetErrorMsg(35003,"path of parent folder does not exist,data error status",resp);
             return;
         }
         sprintf(father_name,"%s",reply->str);
         freeReplyObject(reply);
     }
 
-    if (counter != file_n-1) {
+    if (counter != file_n) {
         g_file_redis->ReleaseRedisClient(file_rc,true);
-        SetErrorMsg(35003,"path of parent folder does not exist",resp);
+        SetErrorMsg(35003,"path of parent folder does not exist...",resp);
         return;
     }
 
@@ -136,23 +142,19 @@ void* args, ResponsePacket* resp) {
         SetErrorMsg(35002,"redis database server is busy",resp);
         return;
     } else if (FAILED_ACTIVE==cmd_ret) {//文件不存在
-/*
-        g_file_redis->ReleaseRedisClient(file_rc,true);
         freeReplyObject(reply);
-        SetErrorMsg(35003,"path of parent folder does not exist",resp);
-*/
-        freeReplyObject(reply);
+
         char tfs_file_name[TFS_FILE_LEN];
         if (!WriteFileToTFS(req_doc["data"].GetString(),
             req_doc["data"].GetStringLength(),
             tfs_file_name)) {
             
-            SetErrorMsg(35009,"write file failed");
+            SetErrorMsg(35009,"write file failed",resp);
             g_file_redis->ReleaseRedisClient(file_rc,true);
             return;
         }
 
-        printf(lnd_name,"%d%c%s%c%s",1,0x01,
+        sprintf(lnd_name,"%d%c%s%c%s",1,0x01,
             req_doc["account"].GetString(),
             0x01,tfs_file_name);
         sprintf(cmd,"HSETNX %s %s %s",father_name,
@@ -165,14 +167,12 @@ void* args, ResponsePacket* resp) {
         } else if (FAILED_ACTIVE==cmd_ret) {//没有父目录
             //记录异常日志
             g_file_redis->ReleaseRedisClient(file_rc,true);
-            freeReplyObject(reply);
-            SetErrorMsg(35009,"file has existed",resp);
+            SetErrorMsg(35009,"...file has existed",resp);
             return;
         }
-        freeReplyObject(reply);
 
-        sprintf(cmd,"ZADD file_seq_no_zsets_%s %s %s", lnd_name,
-            req_doc["seq_no"].GetInt(), tfs_file_name)
+        sprintf(cmd,"ZADD file_seq_no_zsets_%s %d %s", lnd_name,
+            req_doc["seq_no"].GetInt(), tfs_file_name);
         cmd_ret=Rzadd(file_rc,cmd,reply);
         if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
             //记录异常日志
@@ -182,52 +182,43 @@ void* args, ResponsePacket* resp) {
         } else if (FAILED_ACTIVE==cmd_ret) {//没有父目录
             //记录异常日志
             g_file_redis->ReleaseRedisClient(file_rc,true);
-            freeReplyObject(reply);
             SetErrorMsg(35009,"create file failed",resp);
             return;
         }
-        freeReplyObject(reply);
 
         SetErrorMsg(0,"",resp);
         g_file_redis->ReleaseRedisClient(file_rc,true);
         return;
     }
 
+    //文件存在
     if (0==reply->len) {
         g_file_redis->ReleaseRedisClient(file_rc,true);
         freeReplyObject(reply);
         SetErrorMsg(35008,"redis database data status error",resp);
         return;
-    }
-    //文件存在,是目录
-    if ('0'==reply->str[0]) {
+    } else if ('1'!=reply->str[0]) {//文件存在,是目录
         g_file_redis->ReleaseRedisClient(file_rc,true);
         freeReplyObject(reply);
         SetErrorMsg(35009,"folder which name is same has existed",resp);
-        return;
-    } else if ('1' != reply->str[0]) {
-        //数据库数据异常
-        g_file_redis->ReleaseRedisClient(file_rc,true);
-        freeReplyObject(reply);
-        SetErrorMsg(35008,"redis database data status error",resp);
         return;
     }
     //检查分片是否已存在
     //file_lnd_name:10x01account0x01tfs_name
     sprintf(lnd_name, "file_seq_no_zsets_%s", reply->str);
     freeReplyObject(reply);
+
     sprintf(cmd, "ZRANGEBYSCORE %s %d %d", lnd_name,
         req_doc["seq_no"].GetInt(), 
         req_doc["seq_no"].GetInt());
-    cmd_ret=Rzrangebyscore(file_rc,cmd,reply,false);
+    cmd_ret=Rzrangebyscore(file_rc,cmd,reply);
     if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
         g_file_redis->ReleaseRedisClient(file_rc,false);
         SetErrorMsg(35002,"redis database server is busy",resp);
         return;
     } else if (SUCCESS_ACTIVE==cmd_ret) {//文件存在，分片已存在，不属于一个分片
         g_file_redis->ReleaseRedisClient(file_rc,true);
-        freeReplyObject(reply);
-        SetErrorMsg(35009,"file has existed",resp);
+        SetErrorMsg(35009,"file has existed...",resp);
         return;
     }
     //文件存在，属于一个分片
@@ -236,7 +227,7 @@ void* args, ResponsePacket* resp) {
         req_doc["data"].GetStringLength(),
         tfs_file_name)) {
         
-        SetErrorMsg(35009,"write file failed");
+        SetErrorMsg(35009,"write file failed",resp);
         g_file_redis->ReleaseRedisClient(file_rc,true);
         return;
     }
@@ -252,7 +243,6 @@ void* args, ResponsePacket* resp) {
     } else if (FAILED_ACTIVE==cmd_ret) {//没有父目录
         //记录异常日志
         g_file_redis->ReleaseRedisClient(file_rc,true);
-        freeReplyObject(reply);
         SetErrorMsg(35009,"create file failed",resp);
         return;
     }

@@ -390,6 +390,84 @@ redisReply*& reply, bool free_reply) {
     return ret;
 }
 
+/*********************************************
+//有序集合zsets
+*********************************************/
+int Rzadd(RedisClient* rc, const char* cmd, 
+redisReply*& reply, bool free_reply) {
+    if (NULL==rc) {
+        TBSYS_LOG(DEBUG,"NULL==rc");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    if (NULL==rc->redis_context_) {
+        TBSYS_LOG(DEBUG,"NULL==rc->redis_context_");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    TBSYS_LOG(DEBUG,"cmd=%s", cmd);
+    if (0!=strncasecmp("ZADD ",cmd,5)) {
+        TBSYS_LOG(DEBUG,"not ZADD");
+        return FAILED_ACTIVE;
+    }
+
+    reply=(redisReply* )redisCommand(rc->redis_context_,cmd);
+    if (NULL==reply) {
+        TBSYS_LOG(DEBUG,"NULL==reply");
+        return FAILED_NOT_ACTIVE;
+    }
+    TBSYS_LOG(DEBUG,"type=%d,integer=%d",reply->type, reply->integer);
+
+    int ret=FAILED_ACTIVE;
+    if (REDIS_REPLY_INTEGER==reply->type) {
+        ret=SUCCESS_ACTIVE;
+    }
+
+    if (free_reply || FAILED_ACTIVE==ret) {
+        freeReplyObject(reply);
+    }
+    TBSYS_LOG(DEBUG,"ret=%d",ret);
+    return ret;
+}
+
+int Rzrangebyscore(RedisClient* rc, const char* cmd, 
+redisReply*& reply, bool free_reply) {
+    if (NULL==rc) {
+        TBSYS_LOG(DEBUG,"NULL==rc");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    if (NULL==rc->redis_context_) {
+        TBSYS_LOG(DEBUG,"NULL==rc->redis_context_");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    TBSYS_LOG(DEBUG,"cmd=%s", cmd);
+    if (0!=strncasecmp("ZRANGEBYSCORE ",cmd,14)) {
+        TBSYS_LOG(DEBUG,"not ZRANGEBYSCORE");
+        return FAILED_ACTIVE;
+    }
+
+    reply=(redisReply* )redisCommand(rc->redis_context_,cmd);
+    if (NULL==reply) {
+        TBSYS_LOG(DEBUG,"NULL==reply");
+        return FAILED_NOT_ACTIVE;
+    }
+    TBSYS_LOG(DEBUG,"type=%d,integer=%d,elements=%d",
+        reply->type, reply->integer, reply->elements);
+
+    int ret=FAILED_ACTIVE;
+    if (REDIS_REPLY_ARRAY==reply->type && reply->elements>0) {
+        ret=SUCCESS_ACTIVE;
+    }
+
+    if (free_reply || FAILED_ACTIVE==ret) {
+        freeReplyObject(reply);
+    }
+    TBSYS_LOG(DEBUG,"ret=%d",ret);
+    return ret;
+}
+
 
 }
 }

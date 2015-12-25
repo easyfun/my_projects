@@ -101,24 +101,48 @@ M:FILE_SERVER_DOWNLOAD_FILE_REQ
     {
         "account":"lljzfly",//账号名
         "password":"trxh",//密码
-        "name":"",
-        "offset":0,
-        "length":100,
-        "flag":1//0完成,1还有数据等待下载
+        "tfs_file_name":"",
     }
 应答消息id:1007
 应答:
     error_code
     {
-        "error_msg":""
+        "error_msg":"",
+        "tfs_file_name":"",
+        "length":100,
+        "data":""
+    }
+备注:
+
+M:FILE_SERVER_DOWNLOAD_FILE_GET_INFO_REQ
+功能说明:下载文件
+请求消息id:1006
+请求:
+    {
+        "account":"lljzfly",//账号名
+        "password":"trxh",//密码
+        "file_name":"",
+        "file_lnd_name":"",
+        "seq_no_start":1,
+        "seq_no_end":2
+    }
+应答消息id:1007
+应答:
+    error_code
+    {
+        "error_msg":"",
+        "file_lnd_name":"",
+        //"length":100,
+        "seq_no_size":100,
+        "seq_no_return_size":50,//max return 768
+        "seq_no_list":[[1,""],[2,""]]
     }
 备注:
 
 
-
 M:FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ
 功能说明:删除文件/文件夹
-请求消息id:1008
+请求消息id:1010
 请求:
     {
         "account":"lljzfly",//账号名
@@ -126,7 +150,7 @@ M:FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ
         "type":0,
         "name":""
     }
-应答消息id:1009
+应答消息id:1011
 应答:
     error_code
     {
@@ -138,13 +162,13 @@ M:FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ
 
 M:FILE_SERVER_SEARCH_FILE_REQ
 功能说明:查找文件
-请求消息id:1010
+请求消息id:1012
 请求:
     {
         "account":"lljzfly",//账号名
         "password":"trxh",//密码
     }
-应答消息id:1011
+应答消息id:1013
 应答:
     error_code
     {

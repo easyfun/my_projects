@@ -13,8 +13,8 @@ CXXCOMPILE=$(CXX) -c -g
 #JSONCPP_LIB=/home/trxh/my_projects/jsoncpp/libs/linux-gcc-4.8/libjson_linux-gcc-4.8_libmt.a
 
 TBSDK_LIBRARY_PATH=/home/lljz/lib
-TBSDK_LIB=$(TBSDK_LIBRARY_PATH)/lib/libtbnet.a $(TBSDK_LIBRARY_PATH)/lib/libtbsys.a
-TBSDK_INC = -I$(TBSDK_LIBRARY_PATH)/include
+TBSDK_LIB=/home/lljz/lib/tfs_client/lib/libtfsclient.a $(TBSDK_LIBRARY_PATH)/lib/libtbnet.a $(TBSDK_LIBRARY_PATH)/lib/libtbsys.a
+TBSDK_INC = -I$(TBSDK_LIBRARY_PATH)/include -I$(TBSDK_LIBRARY_PATH)/include/tbnet -I$(TBSDK_LIBRARY_PATH)/include/tbsys -I/home/lljz/lib/tfs_client/include
 JSONCPP_INC=-I/home/lljz/projects/jsoncpp-master/include
 JSONCPP_LIB=/home/lljz/projects/jsoncpp-master/libs/linux-gcc-4.9.2/libjson_linux-gcc-4.9.2_libmt.a
 RAPIDJSON_INC=-I/home/lljz/my_projects/rapidjson/include
@@ -36,7 +36,7 @@ file_server:main.o file_server.o global.o connection_manager_to_server.o \
 load_connection_manager.o packet_handler_to_server.o handler_router.o \
 public_echo_test_req_handler.o redis_client.o redis_client_manager.o \
 file_server_handler.o create_folder_req.o connection_manager_from_client.o \
-modify_property_req.o
+modify_property_req.o upload_file_req.o download_file_req.o
 	cd $(OUTPUT_PATH) && \
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(TBSDK_LIB) $(JSON_LIB) \
@@ -104,3 +104,14 @@ modify_property_req.o:modify_property_req.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
 		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
 		$(REDIS_INC)
+
+upload_file_req.o:upload_file_req.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+
+download_file_req.o:download_file_req.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+		$(TBSDK_INC) $(PROJECT_INC) $(JSON_INC) \
+		$(REDIS_INC)
+

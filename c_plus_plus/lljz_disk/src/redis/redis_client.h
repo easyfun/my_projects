@@ -52,6 +52,13 @@ int Rspop(RedisClient* rc, const char* cmd,
 int Rsunionstore(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
 
+//有序集合zsets
+int Rzadd(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+
+int Rzrangebyscore(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+
 }
 }
 

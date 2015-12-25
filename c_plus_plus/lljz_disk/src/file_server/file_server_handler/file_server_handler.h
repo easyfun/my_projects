@@ -5,6 +5,7 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+#include "func.h"
 #include "tfs_client_api.h"
 
 #include "public_echo_test_req_handler.h"
@@ -82,13 +83,20 @@ void ModifyPropertyReq(RequestPacket* req,
 void UploadFileReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
-/*
+
 //下载文件
 //FILE_SERVER_DOWNLOAD_FILE_REQ=1006,
 void DownloadFileReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
 
+//下载文件获取文件信息
+//FILE_SERVER_DOWNLOAD_FILE_GET_INFO_REQ
+void DownloadFileGetInfoReq(RequestPacket* req,
+    void* args,
+    ResponsePacket* resp);
+
+/*
 //删除文件/文件夹
 //FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ=1008,
 void DeleteFileOrFolderReq(RequestPacket* req,

@@ -49,6 +49,8 @@ install:
 	#cp py_client.ini $(OUTPUT_PATH)
 	#cp py_test_file_server.py $(OUTPUT_PATH)
 	cp modify_property_req.py $(OUTPUT_PATH)
+	cp py_upload_file.py $(OUTPUT_PATH)
+	cp py_download_file.py $(OUTPUT_PATH)
 
 py_client.so:py_client.o py_client_export.o
 	cd $(OUTPUT_PATH) && \

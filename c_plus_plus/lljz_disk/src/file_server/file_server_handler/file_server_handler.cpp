@@ -27,8 +27,6 @@ bool InitDatabase() {
         return false;
     }
 
-    const char* nsip=TBSYS_CONFIG.getString("tfs_name_server",
-        "nsip","");
     return true;
 }
 
@@ -38,8 +36,11 @@ bool InitHandler() {
         return false;
     }
 
+    const char* nsip=TBSYS_CONFIG.getString("tfs_name_server",
+        "name_server_spec","");
+    TBSYS_LOG(DEBUG,"------------nsip=%s",nsip);
     g_tfs_client=TfsClient::Instance();
-    if (!g_tfs_client->initialize(nsip)) {
+    if (TFS_SUCCESS != g_tfs_client->initialize(nsip)) {
         TBSYS_LOG(ERROR,"%s","TfsClient::initialize fail");
         return false;
     }
@@ -69,8 +70,8 @@ void RegisterHandler() {
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_CREATE_FOLDER_REQ,CreateFolderReq);
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_MODIFY_PROPERTY_REQ,ModifyPropertyReq);
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_UPLOAD_FILE_REQ,UploadFileReq);
-/*    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DOWNLOAD_FILE_REQ,DownloadFileReq);
-    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ,DeleteFileOrFolderReq);
+    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DOWNLOAD_FILE_REQ,DownloadFileReq);
+/*    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ,DeleteFileOrFolderReq);
     */
 }
 
@@ -217,6 +218,7 @@ char* tfs_file_name) {
     // 读写失败   
     if (ret < 0) {
         TBSYS_LOG(ERROR,"write data error!");
+        g_tfs_client->close(fd);
         return false;
     }
 
@@ -224,7 +226,7 @@ char* tfs_file_name) {
     ret = g_tfs_client->close(fd, tfs_file_name, TFS_FILE_LEN);
     if (ret != TFS_SUCCESS) {// 提交失败
         TBSYS_LOG(ERROR,"write remote file failed! ret: %s", ret);
-        return false
+        return false;
     } 
     return true;
 }
@@ -246,14 +248,17 @@ char* data,int& len) {
     ret = g_tfs_client->fstat(fd, &fstat);
     if (ret != TFS_SUCCESS || fstat.size_ <= 0) {
         TBSYS_LOG(ERROR,"get remote file info error");
+        g_tfs_client->close(fd);
         return false;
     }
 
     if (fstat.size_ > 25165824) {//24KB
         TBSYS_LOG(ERROR,"remote file size more than 24KB,fatal error");
+        g_tfs_client->close(fd);
         return false;
     } else if (fstat.size_ > len) {//24KB
         TBSYS_LOG(ERROR,"the buffer is small");
+        g_tfs_client->close(fd);
         return false;
     }
     len=fstat.size_;
@@ -274,6 +279,7 @@ char* data,int& len) {
 
     if (ret < 0 || crc != fstat.crc_) {
         TBSYS_LOG(ERROR,"read remote file error!");
+        g_tfs_client->close(fd);
         return false;
     }
 
