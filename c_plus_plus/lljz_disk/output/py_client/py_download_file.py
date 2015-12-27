@@ -42,22 +42,19 @@ def RunTest():
 
     account="lljzfly"
     password="123456"
-    #上传文件
-    print("------test UploadFileReq")
+    #下载文件
+    print("------test DownloadFileReq")
     request = {
         "src_type":65001,
         "src_id":1,
         "dest_type":4,
         "dest_id":0,
-        "msg_id":1004,
+        "msg_id":1006,
         "version":0,
         "data":{
             "account":account,
             "password":password,
-            "file_name":"thinking",
-            "seq_no":2,
-            "length":41,
-            "data":"follow nature,not force,that is my heart."
+            "tfs_file_name":"T19yETByJT1RCvBVdK",
         }
     }
         
@@ -72,6 +69,7 @@ def RunTest():
     if 0!=resp_json['error_code']:
         print('request fail,error_code=%d' %
             resp_json['error_code'])
+    print('--------data=%s' % resp_json['data'])
 
     py_client.Disconnect(conn_id)
 

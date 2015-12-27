@@ -51,7 +51,7 @@ void* args, ResponsePacket* resp) {
         GetStrValue(src_name, '/', i+1, value);
         if (value[0]=='\0')
             continue;
-        sprintf(file_name,value);
+        sprintf(file_name,"%s",value);
         file_n++;
     }
     
@@ -75,12 +75,12 @@ void* args, ResponsePacket* resp) {
             sprintf(cmd,"HGET %s %c_%s", father_name,0x02,"create_time");
             cmd_ret=Rhget(file_rc,cmd,reply);
             if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
-                g_file_redis->ReleaseRedisClient(file_rc,cmd_ret);
+                g_file_redis->ReleaseRedisClient(file_rc,false);
                 SetErrorMsg(35002,"redis database server is busy",resp);
                 return;
             } else if (FAILED_ACTIVE==cmd_ret) {//没有父目录
                 //记录异常日志
-                g_file_redis->ReleaseRedisClient(file_rc,cmd_ret);
+                g_file_redis->ReleaseRedisClient(file_rc,true);
                 SetErrorMsg(35003,"path of root folder does not exist",resp);
                 return;
             }
@@ -96,12 +96,12 @@ void* args, ResponsePacket* resp) {
                 sprintf(cmd,"HGET %s %s", father_name,value);
                 cmd_ret=Rhget(file_rc,cmd,reply,false);
                 if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
-                    g_file_redis->ReleaseRedisClient(file_rc,cmd_ret);
+                    g_file_redis->ReleaseRedisClient(file_rc,false);
                     SetErrorMsg(35002,"redis database server is busy",resp);
                     return;
                 } else if (FAILED_ACTIVE==cmd_ret) {//没有父目录
                     //记录异常日志
-                    g_file_redis->ReleaseRedisClient(file_rc,cmd_ret);
+                    g_file_redis->ReleaseRedisClient(file_rc,true);
                     freeReplyObject(reply);
                     SetErrorMsg(35003,"path of parent folder does not exist",resp);
                     return;
@@ -109,7 +109,7 @@ void* args, ResponsePacket* resp) {
                 //
                 if (0==reply->len) {
                 //记录异常日志
-                    g_file_redis->ReleaseRedisClient(file_rc,cmd_ret);
+                    g_file_redis->ReleaseRedisClient(file_rc,true);
                     freeReplyObject(reply);
                     SetErrorMsg(35003,"path of parent folder does not exist",resp);
                     return;

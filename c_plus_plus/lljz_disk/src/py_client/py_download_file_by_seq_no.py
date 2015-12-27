@@ -42,22 +42,20 @@ def RunTest():
 
     account="lljzfly"
     password="123456"
-    #上传文件
-    print("------test UploadFileReq")
+    #文件
+    print("------test DownloadFileGetInfoReq")
     request = {
         "src_type":65001,
         "src_id":1,
         "dest_type":4,
         "dest_id":0,
-        "msg_id":1004,
+        "msg_id":1008,
         "version":0,
         "data":{
             "account":account,
             "password":password,
             "file_name":"thinking",
-            "seq_no":2,
-            "length":41,
-            "data":"follow nature,not force,that is my heart."
+            "file_lnd_name":"",
         }
     }
         
@@ -69,9 +67,45 @@ def RunTest():
     if resp_json['function_return']:
         print('request fail,error_msg=%s'
             % (resp_json['function_return']))
+        return
     if 0!=resp_json['error_code']:
         print('request fail,error_code=%d' %
             resp_json['error_code'])
+        return
+    resp_json_data=json.loads(resp_json['data'])
+
+    #下载文件
+    print("------test DownloadFileBySeqNoReq")
+    n=0
+    while n<=4:
+        n+=1
+        request = {
+            "src_type":65001,
+            "src_id":1,
+            "dest_type":4,
+            "dest_id":0,
+            "msg_id":1010,
+            "version":0,
+            "data":{
+                "account":account,
+                "password":password,
+                "file_lnd_name":resp_json_data['file_lnd_name'],
+                "seq_no":n,
+            }
+        }
+        
+        req_str=json.dumps(request)
+        print("req_str:%s" % req_str)
+        resp_str=py_client.Send(conn_id,req_str)
+        print('resp:%s' % resp_str)
+        resp_json=json.loads(resp_str)
+        if resp_json['function_return']:
+            print('request fail,error_msg=%s'
+                % (resp_json['function_return']))
+        if 0!=resp_json['error_code']:
+            print('request fail,error_code=%d' %
+                resp_json['error_code'])
+        print('--------data=%s' % resp_json['data'])
 
     py_client.Disconnect(conn_id)
 

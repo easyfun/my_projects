@@ -54,8 +54,8 @@ def RunTest():
         "data":{
             "account":account,
             "password":password,
-            "file_name":"thinking",
-            "seq_no":2,
+            "file_name":"my_thinking",
+            "seq_no":1,
             "length":41,
             "data":"follow nature,not force,that is my heart."
         }

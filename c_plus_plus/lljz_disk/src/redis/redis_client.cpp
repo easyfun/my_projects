@@ -468,6 +468,46 @@ redisReply*& reply, bool free_reply) {
     return ret;
 }
 
+int Rzcard(RedisClient* rc, const char* cmd, 
+redisReply*& reply, bool free_reply) {
+    if (NULL==rc) {
+        TBSYS_LOG(DEBUG,"NULL==rc");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    if (NULL==rc->redis_context_) {
+        TBSYS_LOG(DEBUG,"NULL==rc->redis_context_");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    TBSYS_LOG(DEBUG,"cmd=%s", cmd);
+    if (0!=strncasecmp("ZCARD ",cmd,6)) {
+        TBSYS_LOG(DEBUG,"not ZCARD");
+        return FAILED_ACTIVE;
+    }
+
+    reply=(redisReply* )redisCommand(rc->redis_context_,cmd);
+    if (NULL==reply) {
+        TBSYS_LOG(DEBUG,"NULL==reply");
+        return FAILED_NOT_ACTIVE;
+    }
+    TBSYS_LOG(DEBUG,"type=%d,integer=%d,elements=%d",
+        reply->type, reply->integer, reply->elements);
+
+    int ret=FAILED_ACTIVE;
+    if (REDIS_REPLY_INTEGER==reply->type 
+        && reply->integer > 0) {
+        ret=SUCCESS_ACTIVE;
+    }
+
+    if (free_reply || FAILED_ACTIVE==ret) {
+        freeReplyObject(reply);
+    }
+    TBSYS_LOG(DEBUG,"ret=%d",ret);
+    return ret;
+}
+
+
 
 }
 }

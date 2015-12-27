@@ -2,3 +2,9 @@
 *.o
 *.log
 tfs_client.tar.gz
+file_server
+account_server
+test
+*.so
+*.a
+*.pid

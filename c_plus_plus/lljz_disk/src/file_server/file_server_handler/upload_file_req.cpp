@@ -60,7 +60,7 @@ void* args, ResponsePacket* resp) {
         GetStrValue(full_name, '/', i+1, value);
         if (value[0]=='\0')
             continue;
-        sprintf(file_name,value);
+        sprintf(file_name,"%s",value);
         file_n++;
     }
     
@@ -246,8 +246,8 @@ void* args, ResponsePacket* resp) {
         SetErrorMsg(35009,"create file failed",resp);
         return;
     }
-    SetErrorMsg(0,"",resp);
     g_file_redis->ReleaseRedisClient(file_rc,true);
+    SetErrorMsg(0,"",resp);
 }
 
 

@@ -20,7 +20,7 @@ bool RedisClientManager::start(const char* redis_section) {
     redis_client_num_=TBSYS_CONFIG.getInt(redis_section,"client_num",0);
     if (0 >= redis_client_num_) {
         redis_client_num_=0;
-        return true;
+        return false;
     }
 
     redis_connect_time_out_=TBSYS_CONFIG.getInt(redis_section,
@@ -31,10 +31,12 @@ bool RedisClientManager::start(const char* redis_section) {
 
     redis_port_=TBSYS_CONFIG.getInt(redis_section,
         "port",6379);
+    TBSYS_LOG(DEBUG,"redis_port_=%d",redis_port_);
 
     const char* str_config_value=TBSYS_CONFIG.getString(redis_section,
         "host","");
     sprintf(redis_host_,"%s",str_config_value);
+    TBSYS_LOG(DEBUG,"redis_host_=%s",redis_host_);
 
     redis_index_=TBSYS_CONFIG.getInt(redis_section,
         "index",0);

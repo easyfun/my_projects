@@ -150,7 +150,7 @@ void test_Rsunionstore(RedisClientManager* manager) {
     int cmd_ret;
     start=tbsys::CTimeUtil::getTime();
     int i;
-    for (i=0;i<200000;i++) {
+    for (i=0;i<2;i++) {
         sprintf(cmd,"SADD global_file_id_sets %d",i);
         cmd_ret=Rsadd(rc, cmd, reply);
         if (SUCCESS_ACTIVE != cmd_ret) {
@@ -183,6 +183,7 @@ int main(int argc,char* argv[]) {
 
     const char* sz_log_level = TBSYS_CONFIG.getString(
     "public", "log_level", "info");
+    printf("sz_log_level=%s\n", sz_log_level);
     TBSYS_LOGGER.setLogLevel(sz_log_level);
 
     RedisClientManager redis_client_manager;

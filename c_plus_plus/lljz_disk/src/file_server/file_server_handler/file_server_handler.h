@@ -91,8 +91,14 @@ void DownloadFileReq(RequestPacket* req,
     ResponsePacket* resp);
 
 //下载文件获取文件信息
-//FILE_SERVER_DOWNLOAD_FILE_GET_INFO_REQ
+//FILE_SERVER_DOWNLOAD_FILE_GET_INFO_REQ=1008
 void DownloadFileGetInfoReq(RequestPacket* req,
+    void* args,
+    ResponsePacket* resp);
+
+//
+//FILE_SERVER_DOWNLOAD_FILE_BY_SEQ_NO_REQ=1008
+void DownloadFileBySeqNoReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
 

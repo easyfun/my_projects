@@ -42,7 +42,7 @@ void* args, ResponsePacket* resp) {
         GetStrValue(folder_name, '/', i+1, value);
         if (value[0]=='\0')
             continue;
-        sprintf(file_name,value);
+        sprintf(file_name,"%s",value);
         file_n++;
     }
     if (0==file_n) {

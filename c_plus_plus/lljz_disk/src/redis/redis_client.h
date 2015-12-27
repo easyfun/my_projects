@@ -59,6 +59,9 @@ int Rzadd(RedisClient* rc, const char* cmd,
 int Rzrangebyscore(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
 
+int Rzcard(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+
 }
 }
 

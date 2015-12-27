@@ -13,31 +13,14 @@ void* args, ResponsePacket* resp) {
     Writer<StringBuffer> resp_writer(resp_buffer);
     Value resp_json(kObjectType);
     Value resp_error_msg(kStringType);
-    Value resp_tfs_file_name(kStringType);
-    Value resp_length(kNumberType);
-    Value resp_data(kStringType);
+    Value resp_file_lnd_name(kStringType);
+    Value resp_size(kNumberType);
 
     TBSYS_LOG(DEBUG,"-------data:%s",req->data_);
     req_doc.Parse(req->data_);
 
     if (!CheckAuth(req,resp))
         return;
-
-    if (!req_doc.HasMember("seq_no_start") 
-        || !req_doc["seq_no_start"].IsInt()
-        || req_doc["seq_no_start"].GetInt()<0) {
-        SetErrorMsg(35001,"seq_no_start is invalid",resp);
-        return;        
-    }
-
-    if (!req_doc.HasMember("seq_no_end") 
-        || !req_doc["seq_no_end"].IsInt()
-        || req_doc["seq_no_end"].GetInt()<0
-        || req_doc["seq_no_end"].GetInt() < req_doc["seq_no_start"].GetInt()) {
-        SetErrorMsg(35001,"seq_no_end is invalid",resp);
-        return;        
-    }
-
 
     char file_lnd_name[512];
     bool ret=false;
@@ -66,6 +49,26 @@ void* args, ResponsePacket* resp) {
     int cmd_ret;
     redisReply* reply;
     if (ret) {
+        const char* full_name=req_doc["file_name"].GetString();
+        char value[200];
+        char file_name[200];
+        int file_n=0;
+        int folder_num=GetCharCount(full_name, '/')+1;
+        int i=0;
+        for (i=0;i<folder_num;i++) {
+            GetStrValue(full_name, '/', i+1, value);
+            if (value[0]=='\0')
+                continue;
+            sprintf(file_name,"%s",value);
+            file_n++;
+        }
+    
+        if (0==file_n) {
+            g_file_redis->ReleaseRedisClient(file_rc,true);
+            SetErrorMsg(35003,"file_name is invalid",resp);
+            return;
+        }
+
         //是否存在根目录，父目录
         char father_name[200];
         char lnd_name[200];
@@ -141,21 +144,6 @@ void* args, ResponsePacket* resp) {
         freeReplyObject(reply);
     }
 
-    int all, start, end;
-    ret=false;
-    if (0==req_doc["seq_no_start"].GetInt()) {
-        all=768;
-        start=1;
-        end=start+all-1;
-    } else {
-        start=req_doc["seq_no_start"].GetInt();
-        all = req_doc["seq_no_end"].GetInt() - req_doc["seq_no_start"].GetInt() + 1;
-        if (all > 768) {
-            all=768;
-        }
-        end=start+all-1;
-    }
-
     sprintf(cmd,"ZCARD %s", file_lnd_name);
     cmd_ret=Rzcard(file_rc,cmd,reply,false);
     if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
@@ -168,36 +156,17 @@ void* args, ResponsePacket* resp) {
         SetErrorMsg(35011,"no seq_no_zsets",resp);
         return;
     }
-    int size=reply->integer;
+    resp_size.SetInt(reply->integer);
     freeReplyObject(reply);
-    if (size==0) {
-        return;
-    } else if (size < end) {
-        end=size;
-    }
-
-    sprintf(cmd,"ZRANGEBYSCORE %s %d %d WITHSCORES", file_lnd_name);
-    cmd_ret=Rzcard(file_rc,cmd,reply,false);
-    if (FAILED_NOT_ACTIVE==cmd_ret) {//网络错误
-        g_file_redis->ReleaseRedisClient(file_rc,false);
-        SetErrorMsg(35012,"redis database server is busy",resp);
-        return;
-    } else if (FAILED_ACTIVE==cmd_ret) {
-        //记录异常日志
-        g_file_redis->ReleaseRedisClient(file_rc,true);
-        SetErrorMsg(35012,"no seq_no_zsets",resp);
-        return;
-    }
+    g_file_redis->ReleaseRedisClient(file_rc,true);
 
     resp_error_msg="";
-    resp_tfs_file_name.SetString(req_doc["tfs_file_name"].GetString(),
-        req_doc["tfs_file_name"].GetStringLength(),resp_allocator);
-    resp_length=length;
-    resp_data.SetString(data,length,resp_allocator);
+    resp_file_lnd_name.SetString(file_lnd_name,
+        strlen(file_lnd_name),resp_allocator);
     resp_json.AddMember("error_msg",resp_error_msg,resp_allocator);
-    resp_json.AddMember("tfs_file_name",resp_tfs_file_name,resp_allocator);
-    resp_json.AddMember("length",resp_length,resp_allocator);
-    resp_json.AddMember("data",resp_data,resp_allocator);
+    resp_json.AddMember("file_lnd_name",
+        resp_file_lnd_name,resp_allocator);
+    resp_json.AddMember("size",resp_size,resp_allocator);
     resp_json.Accept(resp_writer);
     sprintf(resp->data_,"%s",resp_buffer.GetString());
 }

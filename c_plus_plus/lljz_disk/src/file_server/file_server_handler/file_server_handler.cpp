@@ -71,6 +71,8 @@ void RegisterHandler() {
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_MODIFY_PROPERTY_REQ,ModifyPropertyReq);
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_UPLOAD_FILE_REQ,UploadFileReq);
     HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DOWNLOAD_FILE_REQ,DownloadFileReq);
+    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DOWNLOAD_FILE_GET_INFO_REQ,DownloadFileGetInfoReq);
+    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DOWNLOAD_FILE_BY_SEQ_NO_REQ,DownloadFileBySeqNoReq);
 /*    HANDLER_ROUTER.RegisterHandler(FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ,DeleteFileOrFolderReq);
     */
 }
