@@ -15,6 +15,7 @@
 #include "response_packet.hpp"
 #include "redis_client.h"
 #include "redis_client_manager.h"
+#include "global.h"
 
 using namespace rapidjson;
 using namespace tfs::client;
@@ -46,14 +47,6 @@ void StopHandler();
 **************************************/
 bool CheckAuth(RequestPacket* req,
     ResponsePacket* resp);
-
-void SetErrorMsg(uint32_t error_code, 
-    const char* error_msg, ResponsePacket* resp);
-
-int GetCharCount(const char* str, char c);
-
-void GetStrValue(const char* str, 
-    char c,int index, char* value);
 
 //上传文件到TFS服务器
 bool WriteFileToTFS(const char* data, int len, 
@@ -95,14 +88,14 @@ void DownloadFileReq(RequestPacket* req,
 void DownloadFileGetInfoReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
-
+/*
 //
 //FILE_SERVER_DOWNLOAD_FILE_BY_SEQ_NO_REQ=1008
 void DownloadFileBySeqNoReq(RequestPacket* req,
     void* args,
     ResponsePacket* resp);
 
-/*
+
 //删除文件/文件夹
 //FILE_SERVER_DELETE_FILE_OR_FOLDER_REQ=1008,
 void DeleteFileOrFolderReq(RequestPacket* req,

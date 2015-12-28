@@ -12,6 +12,7 @@
 #include "response_packet.hpp"
 #include "redis_client.h"
 #include "redis_client_manager.h"
+#include "global.h"
 
 using namespace rapidjson;
 
