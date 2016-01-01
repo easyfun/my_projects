@@ -215,8 +215,8 @@ void TestClient::start(int conncount)
         packet->src_id_=100;
         packet->dest_type_=SERVER_TYPE_ACCOUNT_SERVER;
         packet->dest_id_=0;
-        packet->msg_id_=PUBLIC_ECHO_TEST_REQ;//CONFIG_SERVER_ECHO_TEST_REQ;
-        memset(packet->data_,'a',500);
+        packet->msg_id_=PUBLIC_ECHO_TEST_REQ;
+        memset(packet->data_,'a',200);
 
         ConnectCond* conn_cond=new ConnectCond;
         conn_cond->req_=packet;

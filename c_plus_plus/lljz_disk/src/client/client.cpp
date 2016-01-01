@@ -145,22 +145,16 @@ void TestClient::start(int conncount)
     Value json_spec(kStringType);
     json_spec="tcp:127.0.0.1:10800";
 
-    Value json_srv_type(kNumberType);
-    json_srv_type=(uint)SERVER_TYPE_CLIENT_LINUX;
 
     Value json_srv_id(kNumberType);
     json_srv_id=10000;
 
-    Value json_dep_srv_type(kArrayType);
+/*    Value json_dep_srv_type(kArrayType);
     int size=10;
     for (int i=0;i<size;i++) {
         json_dep_srv_type.PushBack(i,allocator);
-    }
-    json_req.AddMember("spec",json_spec,allocator);
-    json_req.AddMember("srv_type",json_srv_type,allocator);
-    //json_req.AddMember("srv_id",json_srv_id,allocator);
-    json_req.AddMember("dep_srv_type",json_dep_srv_type,allocator);
-
+    }*/
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    json_req.AddMember("spec",json_spec,allocator);
     std::string req_data;
     int sendcount = 0;
     int pid = getpid();
@@ -168,12 +162,26 @@ void TestClient::start(int conncount)
     for(int i=0; i<gsendcount; i++) {
         RequestPacket *packet = new RequestPacket();
         TBSYS_LOG(DEBUG,"TestClient::start, addr=%u",packet);
-        packet->src_type_=SERVER_TYPE_CLIENT_LINUX;
         packet->src_id_=10000+i;
         packet->dest_type_=SERVER_TYPE_CONFIG_SERVER;
         packet->dest_id_=0;
         packet->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;//CONFIG_SERVER_ECHO_TEST_REQ;
 //        sprintf(packet->data_,"%s",buffer);
+
+        if (i<25) {
+            packet->src_type_=i;
+        } else {
+            packet->src_type_=i%25;
+        }
+        Value json_dep_srv_type(kArrayType);
+        json_dep_srv_type.PushBack(packet->src_type_,allocator);
+        json_req.RemoveMember("dep_srv_type");
+        json_req.AddMember("dep_srv_type",json_dep_srv_type,allocator);
+
+        Value json_srv_type(kNumberType);
+        json_srv_type=packet->src_type_;
+        json_req.RemoveMember("srv_type");
+        json_req.AddMember("srv_type",json_srv_type,allocator);
 
         uint64_t server_id;
         if (i<500) {
@@ -197,55 +205,6 @@ void TestClient::start(int conncount)
         }
 //        gsendlen += len;
     }
-
-/*    
-    //jsoncpp
-    Json::Value json_req;
-    json_req["spec"]="tcp:127.0.0.1:10800";
-    json_req["srv_type"]=SERVER_TYPE_CLIENT_LINUX;
-    char int64_str[32]={0};
-    sprintf(int64_str,"%llu",10000);
-    json_req["srv_id"]=int64_str;
-    Json::Value json_dep_srv_type=Json::Value(Json::arrayValue);
-    Json::Value json_srv_type;
-    int size=10;
-    for (int i=0;i<size;i++) {
-        json_srv_type=i;
-        json_dep_srv_type.append(json_srv_type);
-    }
-    json_req["dep_srv_type"]=json_dep_srv_type;
-    Json::FastWriter writer;
-    std::string req_data;//=writer.write(json_req);
-
-    int sendcount = 0;
-    int pid = getpid();
-    TBSYS_LOG(ERROR, "PID: %d", pid);
-    for(int i=0; i<gsendcount; i++) {
-        RequestPacket *packet = new RequestPacket();
-        TBSYS_LOG(DEBUG,"TestClient::start, addr=%u",packet);
-        packet->src_type_=SERVER_TYPE_CLIENT_LINUX;
-        packet->src_id_=10000+i;
-        packet->dest_type_=SERVER_TYPE_CONFIG_SERVER;
-        packet->dest_id_=0;
-        packet->msg_id_=CONFIG_SERVER_GET_SERVICE_LIST_REQ;//CONFIG_SERVER_ECHO_TEST_REQ;
-//        sprintf(packet->data_,"%s",buffer);
-
-        if (i<500) {
-           sprintf(int64_str,"%llu",10000+i);
-        } else {
-           sprintf(int64_str,"%llu",10000+i%500);
-        }
-        json_req["srv_id"]=int64_str;
-        req_data=writer.write(json_req);
-        strcat(packet->data_,req_data.c_str());
-
-        sendcount++;
-        if (!cons[i%conncount]->postPacket(packet, NULL, packet)) {
-            break;
-        }
-//        gsendlen += len;
-    }
-*/
 
     gsendcount = sendcount;
     TBSYS_LOG(ERROR, "send finish.");

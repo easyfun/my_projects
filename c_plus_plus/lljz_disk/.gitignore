@@ -8,3 +8,8 @@ test
 *.so
 *.a
 *.pid
+client
+client_one
+test_echo
+config_server
+
