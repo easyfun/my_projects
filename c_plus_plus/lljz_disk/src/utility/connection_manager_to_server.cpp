@@ -170,6 +170,7 @@ void ConnectionManagerToServer::CheckConfigServer() {
     for (int i=0;i<size;i++) {
         dep_srv_type_json.PushBack(depend_server_type_[i],allocator);
     }
+    req_json.AddMember("dep_srv_type",dep_srv_type_json,allocator);
 
     StringBuffer req_buffer;
     Writer<StringBuffer> writer(req_buffer);
@@ -177,26 +178,6 @@ void ConnectionManagerToServer::CheckConfigServer() {
     std::string req_data=req_buffer.GetString();
     strcat(req->data_,req_data.c_str());
 
-/*
-    //jsoncpp
-    Json::Value json_req;
-    json_req["spec"]=self_server_spec_;
-    json_req["srv_type"]=self_server_type_;
-    char int64_str[32]={0};
-    sprintf(int64_str,"%llu",self_server_id_);
-    json_req["srv_id"]=int64_str;
-    Json::Value json_dep_srv_type=Json::Value(Json::arrayValue);
-    Json::Value json_srv_type;
-    int size=depend_server_type_.size();
-    for (int i=0;i<size;i++) {
-        json_srv_type=depend_server_type_[i];
-        json_dep_srv_type.append(json_srv_type);
-    }
-    json_req["dep_srv_type"]=json_dep_srv_type;
-    Json::FastWriter writer;
-    std::string req_data=writer.write(json_req);
-    strcat(req->data_,req_data.c_str());
-*/
     if (false==conn_to_config_server_->postPacket(req,
         packet_handler_to_server_,req)) {
         TBSYS_LOG(DEBUG,"%s",
@@ -307,6 +288,7 @@ bool ConnectionManagerToServer::GetServiceListResp(
 tbnet::Packet * apacket, void *args) {
     ResponsePacket* resp=(ResponsePacket* )apacket;
     if (0!=resp->error_code_) {
+        TBSYS_LOG(ERROR,"GetServiceListResp error");
         return true;
     }
 
@@ -362,57 +344,6 @@ tbnet::Packet * apacket, void *args) {
             server_changed=true;
         }
     }    
-/*
-    //jsoncpp
-    Json::Value json_data_root;
-    Json::Reader reader;
-    if (!reader.parse(resp->data_, json_data_root, false)) {
-        return true;
-    }
-
-    int size=json_data_root["total"].asInt();
-    int svr_url_size=server_url_.size();
-
-    server_changed=false;
-    //server_url_ check remove
-    int i,j;
-    for (i=0;i<svr_url_size;i++) {
-        for (j=0;j<size;j++) {
-            spec=json_data_root["srv_info"][j]["spec"].asString();
-            if (0==strcmp(server_url_[i]->spec_,spec.c_str())) {
-                break;
-            }
-        }
-        if (j==size) {
-            server_url_[i]->changed_=2;
-            server_changed=true;
-        }
-    }
-
-    //server_url_ check add
-    for (i=0;i<size;i++) {
-        spec=json_data_root["srv_info"][i]["spec"].asString();
-        server_type=json_data_root["srv_info"][i]["server_type"].asInt();
-        server_id=json_data_root["srv_info"][i]["server_id"].asInt();
-
-        for (j=0;j<svr_url_size;j++) {
-            if (0==strcmp(server_url_[j]->spec_, spec.c_str())) {
-                break;
-            }
-        }
-        
-        if (j==svr_url_size) {
-            ServerURL* svr_url=new ServerURL();
-            strcat(svr_url->spec_,spec.c_str());
-            svr_url->server_type_=server_type;
-            svr_url->server_id_=server_id;
-            svr_url->changed_=1;
-            buff_server_url.push_back(svr_url);
-            server_changed=true;
-        }
-    }
-*/
-
     size=buff_server_url.size();
     for (i=0;i<size;i++) {
         server_url_.push_back(buff_server_url[i]);

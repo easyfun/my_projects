@@ -34,7 +34,6 @@ void AccountServer::Start() {
     task_queue_thread_.start();
     conn_manager_from_client_.start();
 
-/*
     conn_manager_to_srv_=new ConnectionManagerToServer(
         &to_server_transport_,&packet_streamer_,this);
     
@@ -42,7 +41,7 @@ void AccountServer::Start() {
         TBSYS_LOG(ERROR,"%s","conn_manager_to_srv start error");
         Stop();
         return;
-    }*/
+    }
 
     //transport
     char spec[32];
@@ -68,7 +67,7 @@ void AccountServer::Start() {
 
     task_queue_thread_.wait();
     conn_manager_from_client_.wait();
-//    conn_manager_to_srv_->wait();
+    conn_manager_to_srv_->wait();
     from_client_transport_.wait();
     to_server_transport_.wait();
     WaitHandler();
@@ -78,7 +77,7 @@ void AccountServer::Start() {
 void AccountServer::Stop() {
     task_queue_thread_.stop();
     conn_manager_from_client_.stop();
-//    conn_manager_to_srv_->stop();
+    conn_manager_to_srv_->stop();
     from_client_transport_.stop();
     to_server_transport_.stop();
     StopHandler();
@@ -95,9 +94,9 @@ int AccountServer::Initialize() {
 }
 
 int AccountServer::Destroy() {
-/*    if (conn_manager_to_srv_) {
+    if (conn_manager_to_srv_) {
         delete conn_manager_to_srv_;
-    }*/
+    }
     return EXIT_SUCCESS;
 }
 
@@ -241,11 +240,12 @@ tbnet::Packet *packet, void *args) {
         return IPacketHandler::FREE_CHANNEL;
     }
 
+/*    
     resp=new ResponsePacket();
     if (false==conn->postPacket(resp)) {
         delete resp;
     }
-
+*/
     return true;
 }
 

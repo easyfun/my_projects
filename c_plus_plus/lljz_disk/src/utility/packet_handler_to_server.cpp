@@ -8,7 +8,8 @@ namespace lljz {
 namespace disk {
 
 bool PacketHandlerToServer::start() {
-    int thread_count = TBSYS_CONFIG.getInt("server","to_server_work_thread_count",4);
+    int thread_count = TBSYS_CONFIG.getInt("server",
+        "to_server_work_thread_count",1);
     task_queue_thread_.setThreadParameter(thread_count,this,NULL);
     task_queue_thread_.start();
     return true;
@@ -73,7 +74,7 @@ tbnet::Packet * apacket, void *args) {
     && CONFIG_SERVER_GET_SERVICE_LIST_REQ==req->msg_id_) {
         conn_manager_to_srv_->GetServiceListResp(
             resp, resp->get_args());
-            return true;
+        return true;
     }
 
     if (business_packet_handler_) {

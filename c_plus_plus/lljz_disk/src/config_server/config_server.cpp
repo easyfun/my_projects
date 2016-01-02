@@ -208,7 +208,9 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 Value resp_json_total(kNumberType);
                 Value resp_json_srv_info(kArrayType);
 
-                for (it=server_url_.begin();server_url_.end()!=it;it++) {
+                for (it=server_url_.begin();
+                server_url_.end()!=it && size>0
+                ;it++) {
                     TBSYS_LOG(DEBUG,"ServerURLInfo:spec_=%s,server_type_=%u,server_id_=%u",
                         srv_url_info->spec_,
                         srv_url_info->server_type_,
