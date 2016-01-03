@@ -25,6 +25,8 @@ class LoadConnectionManager:public tbnet::IPacketHandler {
 public:
     LoadConnectionManager(tbnet::Transport* transport, 
         tbnet::IPacketStreamer *streamer, 
+        uint64_t self_server_id,
+        uint16_t dest_server_type,
         tbnet::IPacketHandler *packetHandler=NULL);
     ~LoadConnectionManager();
 
@@ -60,6 +62,10 @@ private:
     int _queueLimit;
     int _queueTimeout;
     int _status;
+
+//    uint16_t self_server_type_;
+    uint64_t self_server_id_;
+    uint16_t dest_server_type_;
 
     //连接状态
     //disconnect --> connect --> register --> send

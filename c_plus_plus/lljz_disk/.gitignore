@@ -12,4 +12,5 @@ client
 client_one
 test_echo
 config_server
+core
 

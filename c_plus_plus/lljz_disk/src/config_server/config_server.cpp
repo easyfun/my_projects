@@ -73,7 +73,7 @@ tbnet::Connection *connection, tbnet::Packet *packet) {
 
     RequestPacket *req = (RequestPacket *) packet;
     TBSYS_LOG(DEBUG,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
-        "src_id=%u|dest_type=%u|dest_id=%u|data=%s",
+        "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
         req->getChannelId(),req->getPCode(),req->msg_id_,
         req->src_type_,req->src_id_,req->dest_type_,
         req->dest_id_,req->data_);
@@ -227,7 +227,7 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                         Value json_srv_id(kNumberType);
                         json_spec.SetString(StringRef(srv_url_info->spec_));
                         json_srv_type=srv_url_info->server_type_;
-                        json_srv_id=srv_url_info->server_id_;
+                        json_srv_id.SetUint64(srv_url_info->server_id_);
                         json_srv_url.AddMember("spec",json_spec,allocator);
                         json_srv_url.AddMember("srv_type",json_srv_type,allocator);
                         json_srv_url.AddMember("srv_id",json_srv_id,allocator);

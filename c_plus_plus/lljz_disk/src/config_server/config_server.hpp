@@ -26,7 +26,7 @@ namespace disk {
 struct ServerURLInfo {
     char spec_[100];
     uint32_t server_type_;
-    uint32_t server_id_;
+    uint64_t server_id_;
     int64_t last_use_time_;//有效期180s
 
     ServerURLInfo() {

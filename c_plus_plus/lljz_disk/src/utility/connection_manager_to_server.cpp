@@ -122,10 +122,10 @@ tbsys::CThread* thread, void* arg) {
             CheckConfigServer();
         }
 
-/*        if (2==check_reconn_server) {
+        if (2==check_reconn_server) {
             CheckReconnServer();
         }
-*/
+
         if (15 == ++check_config_server) {
             check_config_server=0;
         }
@@ -162,7 +162,7 @@ void ConnectionManagerToServer::CheckConfigServer() {
     req_json.AddMember("srv_type",srv_type_json,allocator);
 
     Value srv_id_json(kNumberType);
-    srv_id_json=self_server_id_;
+    srv_id_json.SetUint64(self_server_id_);
     req_json.AddMember("srv_id",srv_id_json,allocator);
 
     Value dep_srv_type_json(kArrayType);
@@ -208,6 +208,7 @@ bool ConnectionManagerToServer::PostPacket(
 uint16_t server_type,
 tbnet::Packet* packet, 
 void* args) {
+    TBSYS_LOG(ERROR,"-------server_type=%u",server_type);
     __gnu_cxx::hash_map<uint16_t,
         LoadConnectionManager*>::iterator it;
     LoadConnectionManager* lcm=NULL;
@@ -219,6 +220,7 @@ void* args) {
     mutex_.unlock();
 
     if (lcm==NULL) {
+        TBSYS_LOG(ERROR,"------false");
         return false;
     }
     return lcm->sendPacket(packet,packet_handler_to_server_,args);
@@ -294,15 +296,17 @@ tbnet::Packet * apacket, void *args) {
 
     std::string spec;
     uint32_t server_type;
-    uint32_t server_id;
+    uint64_t server_id;
     std::vector<ServerURL*> buff_server_url;
     bool server_changed;
 
     //rapidjson
     Document resp_doc;
     resp_doc.Parse(resp->data_);
+//    TBSYS_LOG(ERROR,"---%s",resp->data_);
 
-    int size=resp_doc["total"].GetInt();
+    int size;
+    size=resp_doc["srv_info"].Size();//resp_doc["total"].GetInt();
     mutex_.lock();
     int svr_url_size=server_url_.size();
 
@@ -325,8 +329,8 @@ tbnet::Packet * apacket, void *args) {
     //server_url_ check add
     for (i=0;i<size;i++) {
         spec=resp_doc["srv_info"][i]["spec"].GetString();
-        server_type=resp_doc["srv_info"][i]["server_type"].GetInt();
-        server_id=resp_doc["srv_info"][i]["server_id"].GetInt();
+        server_type=resp_doc["srv_info"][i]["srv_type"].GetInt();
+        server_id=resp_doc["srv_info"][i]["srv_id"].GetUint64();
 
         for (j=0;j<svr_url_size;j++) {
             if (0==strcmp(server_url_[j]->spec_, spec.c_str())) {
@@ -344,6 +348,7 @@ tbnet::Packet * apacket, void *args) {
             server_changed=true;
         }
     }    
+
     size=buff_server_url.size();
     for (i=0;i<size;i++) {
         server_url_.push_back(buff_server_url[i]);
@@ -377,6 +382,8 @@ tbnet::Packet * apacket, void *args) {
             load_conn_manager=new LoadConnectionManager(
                 transport_,
                 packet_streamer_,
+                self_server_id_,
+                server_url_[i]->server_type_,                
                 packet_handler_to_server_);//后端连接断开处理
             conn_manager_[server_url_[i]->server_type_]=
                 load_conn_manager;

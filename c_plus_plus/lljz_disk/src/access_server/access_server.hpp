@@ -49,6 +49,11 @@ private:
     uint64_t queueThreadTimeoutThrowPackets_;   // PacketQueueThread排队超时丢弃的请求包数
 
     ConnectionManagerToServer* conn_manager_to_srv_;
+
+//    uint16_t self_server_type_;
+    uint64_t self_server_id_;
+    char self_server_spec_[100];
+    
 };
 
 }

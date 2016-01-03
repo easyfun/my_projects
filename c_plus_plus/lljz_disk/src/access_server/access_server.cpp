@@ -19,12 +19,12 @@ AccessServer::~AccessServer() {
 
 void AccessServer::Start() {
     if (Initialize()) {
+        TBSYS_LOG(ERROR,"Initialize fail");
         return;
     }
 
     //process thread
     task_queue_thread_.start();
-
     conn_manager_to_srv_=new ConnectionManagerToServer(
         &to_server_transport_,&packet_streamer_,this);
     
@@ -33,7 +33,6 @@ void AccessServer::Start() {
         Stop();
         return;
     }
-
     //transport
     char spec[32];
     bool ret=true;
@@ -77,6 +76,33 @@ int AccessServer::Initialize() {
     int thread_count = TBSYS_CONFIG.getInt(
         "server","from_client_work_thread_count",4);
     task_queue_thread_.setThreadParameter(thread_count,this,NULL);
+
+/*    self_server_type_=TBSYS_CONFIG.getInt(
+        "server","self_server_type",
+        SERVER_TYPE_ACCESS_SERVER);
+*/
+    const char* str_config_value=TBSYS_CONFIG.getString(
+        "server","self_server_spec","");
+    if (0==strlen(str_config_value)) {
+        TBSYS_LOG(ERROR,"%s",
+            "config error,self_server_spec error");
+        return EXIT_FAILURE;
+    }
+    memset(self_server_spec_,0,
+        sizeof(self_server_spec_));
+    strcat(self_server_spec_,str_config_value);
+
+    self_server_id_=GetServerID(self_server_spec_);
+    if (0==self_server_id_) {
+        TBSYS_LOG(ERROR,"%s",
+            "config error,self_server_spec error"
+            ",self_server_id error");
+        return EXIT_FAILURE;
+    }
+
+//    self_server_id_=42992639410303;
+    printf("----self_server_id_=%llu\n",
+        self_server_id_);
     return EXIT_SUCCESS;
 }
 
@@ -91,9 +117,8 @@ tbnet::IPacketHandler::HPRetCode
 AccessServer::handlePacket(
 tbnet::Connection *connection, 
 tbnet::Packet *packet) {
-    TBSYS_LOG(DEBUG,"%s",
-        "AccessServer::handlePacket");
-
+    printf("----self_server_id_=%llu\n",
+        self_server_id_);
     if (!packet->isRegularPacket()) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
             ((tbnet::ControlPacket* )packet)->getCommand());
@@ -101,6 +126,13 @@ tbnet::Packet *packet) {
         return IPacketHandler::FREE_CHANNEL;
     }
 
+    RequestPacket *req = (RequestPacket *) packet;
+/*    TBSYS_LOG(DEBUG,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+        "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+        req->getChannelId(),req->getPCode(),req->msg_id_,
+        req->src_type_,req->src_id_,req->dest_type_,
+        req->dest_id_,req->data_);
+*/
     BasePacket* bp=(BasePacket* )packet;
     bp->set_recv_time(tbsys::CTimeUtil::getTime());
     bp->set_connection(connection);
@@ -112,9 +144,6 @@ tbnet::Packet *packet) {
 
 bool AccessServer::handlePacketQueue(
 tbnet::Packet * apacket, void *args) {
-    TBSYS_LOG(DEBUG,"%s",
-        "AccessServer::handlePacketQueue");
-    return true;
     BasePacket *packet = (BasePacket *) apacket;
     tbnet::Connection* conn=packet->get_connection();
     int64_t nowTime=tbsys::CTimeUtil::getTime();
@@ -141,19 +170,34 @@ tbnet::Packet * apacket, void *args) {
     switch (pcode) {
         case REQUEST_PACKET: {
             RequestPacket *client_req = (RequestPacket *)packet;
+
+            TBSYS_LOG(ERROR,"client_req:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+                "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+                client_req->getChannelId(),client_req->getPCode(),
+                client_req->msg_id_,client_req->src_type_,
+                client_req->src_id_,client_req->dest_type_,
+                client_req->dest_id_,client_req->data_);
+
             AccessPacket *access_req = new AccessPacket();
             access_req->set_recv_time(tbsys::CTimeUtil::getTime());
             access_req->set_connection(client_req->get_connection());
             access_req->cli_src_type_=client_req->src_type_;
             access_req->cli_src_id_=client_req->src_id_;
             access_req->cli_chid_=client_req->getChannelId();
-            access_req->src_type_=0;
-            access_req->src_id_=0;
+            access_req->src_type_=SERVER_TYPE_ACCESS_SERVER;
+            access_req->src_id_=self_server_id_;
             access_req->dest_type_=client_req->dest_type_;
             access_req->dest_id_=client_req->dest_id_;
             access_req->msg_id_=client_req->msg_id_;
             access_req->version_=client_req->version_;
             strcat(access_req->data_,client_req->data_);
+
+            TBSYS_LOG(ERROR,"access_req:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+                "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+                access_req->getChannelId(),access_req->getPCode(),
+                access_req->msg_id_,access_req->src_type_,
+                access_req->src_id_,access_req->dest_type_,
+                access_req->dest_id_,access_req->data_);
 
             //发送到业务服务器
             if (false==conn_manager_to_srv_->PostPacket(
@@ -161,17 +205,17 @@ tbnet::Packet * apacket, void *args) {
                 //发送错误返回目标服务器不可达
                 ResponsePacket* resp=new ResponsePacket();
                 resp->setChannelId(packet->getChannelId());
-                resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
+                resp->src_type_=client_req->dest_type_;
                 resp->src_id_=client_req->dest_id_;
+                resp->dest_type_=client_req->src_type_;
                 resp->dest_id_=client_req->src_id_;
-                sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
+                resp->error_code_=5;
+                sprintf(resp->data_,"%s","{\"error_msg\":\"dest server not in server\"}");
                 if (false==conn->postPacket(resp)) {
                     delete resp;
                 }
                 delete access_req;
             }
-
-            delete client_req;
         }
         break;
 
@@ -200,11 +244,11 @@ tbnet::Packet *packet, void *args) {
             access_req=(AccessPacket* )args;
             //发送错误返回目标服务器不可达
             resp=new ResponsePacket();
-            resp->setChannelId(access_req->getChannelId());
+            resp->setChannelId(access_req->cli_chid_);
             resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
             resp->src_id_=access_req->dest_id_;
             resp->dest_id_=access_req->src_id_;
-            sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
+            sprintf(resp->data_,"%s","{\"error_msg\":\"dest server not in server\"}");
             conn=access_req->get_connection();
             if (false==conn->postPacket(resp)) {
                 delete resp;
@@ -220,22 +264,30 @@ tbnet::Packet *packet, void *args) {
     if (now_time - access_req->get_recv_time() >= PACKET_WAIT_FOR_SERVER_MAX_TIME) {
         //发送错误返回目标服务器不可达
         resp=new ResponsePacket();
-        resp->setChannelId(access_req->getChannelId());
+        resp->setChannelId(access_req->cli_chid_);
         resp->setPCode(CONFIG_SERVER_GET_SERVICE_LIST_RESP);
         resp->src_id_=access_req->dest_id_;
         resp->dest_id_=access_req->src_id_;
-        sprintf(resp->data_,"%s","{\"service\":[],\"ip\":\"127.0.0.1\",\"mac\":\"010A0B0C\"}");
+        sprintf(resp->data_,"%s","{\"error_msg\":\"dest server not in server\"}");
         if (false==conn->postPacket(resp)) {
             delete resp;
         }
+        delete access_req;
         return true;
     }
 
     resp=new ResponsePacket();
+    resp->setChannelId(access_req->cli_chid_);
+    resp->src_type_=business_resp->src_type_;
+    resp->src_id_=business_resp->src_id_;
+    resp->dest_type_=business_resp->dest_type_;
+    resp->dest_id_=business_resp->dest_id_;
+    resp->error_code_=business_resp->error_code_;
+    strcat(resp->data_,business_resp->data_);
     if (false==conn->postPacket(resp)) {
         delete resp;
     }
-
+    delete access_req;
     return true;
 }
 

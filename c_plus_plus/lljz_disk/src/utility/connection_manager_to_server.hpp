@@ -14,7 +14,7 @@ namespace disk {
 struct ServerURL {
     char spec_[100];
     uint32_t server_type_;
-    uint32_t server_id_;
+    uint64_t server_id_;
     int changed_;//0-not,1-add,2-remove
 
     ServerURL() {

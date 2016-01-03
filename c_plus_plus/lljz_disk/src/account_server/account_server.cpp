@@ -114,6 +114,13 @@ tbnet::Packet *packet) {
         return IPacketHandler::FREE_CHANNEL;
     }
 
+    RequestPacket *req = (RequestPacket *) packet;
+    TBSYS_LOG(ERROR,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+        "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+        req->getChannelId(),req->getPCode(),req->msg_id_,
+        req->src_type_,req->src_id_,req->dest_type_,
+        req->dest_id_,req->data_);
+
     BasePacket* bp=(BasePacket* )packet;
     bp->set_recv_time(tbsys::CTimeUtil::getTime());
     bp->set_connection(connection);

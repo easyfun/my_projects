@@ -8,6 +8,8 @@ namespace disk {
 LoadConnectionManager::LoadConnectionManager(
 tbnet::Transport *transport, 
 tbnet::IPacketStreamer *streamer, 
+uint64_t self_server_id,
+uint16_t dest_server_type,
 tbnet::IPacketHandler *packetHandler) {
     assert(transport != NULL);
     assert(streamer != NULL);
@@ -19,6 +21,8 @@ tbnet::IPacketHandler *packetHandler) {
     _queueTimeout = 60000;//5000;//ms
     _status = 0;
     atomic_set(&last_send_server_id_index_,0);
+    self_server_id_=self_server_id;
+    dest_server_type_=dest_server_type;
 }
 
 LoadConnectionManager::~LoadConnectionManager() {
@@ -62,10 +66,10 @@ uint64_t serverId,bool autoConn) {
     }
     create_conn_mutex_.unlock();
 
-
     char spec[64];
     sprintf(spec, "tcp:%s", 
         tbsys::CNetUtil::addrToString(serverId).c_str());
+    TBSYS_LOG(ERROR,"--debug--spec=%s",spec);
     tbnet::Connection *conn = _transport->connect(
         spec, _streamer, autoConn);
     if (!conn) {
@@ -77,6 +81,12 @@ uint64_t serverId,bool autoConn) {
     conn->setQueueTimeout(_queueTimeout);
 
     RequestPacket* req=new RequestPacket();
+    req->src_type_=SERVER_TYPE_ACCESS_SERVER;
+    req->src_id_=self_server_id_;
+    req->dest_type_=dest_server_type_;
+    req->dest_id_=serverId;
+    req->msg_id_=PUBLIC_REGISTER_REQ;
+
     if (conn->postPacket(req,
                         this,
                         (void*)conn,
@@ -203,6 +213,13 @@ void *args, bool noblocking) {
         }
         conn=it->second;
 
+        RequestPacket *req = (RequestPacket *) packet;
+        TBSYS_LOG(ERROR,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+            "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+            req->getChannelId(),req->getPCode(),req->msg_id_,
+            req->src_type_,req->src_id_,req->dest_type_,
+            req->dest_id_,req->data_);
+
         if (conn->postPacket(packet,
             packetHandler,args,noblocking)) {
             ret=true;
@@ -300,6 +317,7 @@ uint64_t server_id) {
     for (i=0;i<size;) {
         if (server_id==inconn_server_id_[i]) {
             inconn_server_id_.erase(inconn_server_id_.begin()+i);
+            size=inconn_server_id_.size();
             have=true;
             continue;
         }
@@ -315,20 +333,36 @@ void LoadConnectionManager::CheckReconnect() {
     char spec[64];
     RequestPacket* req;
     create_conn_mutex_.lock();
+//    TBSYS_LOG(ERROR,"---in_conn_size=%d",inconn_server_id_.size());
+//    TBSYS_LOG(ERROR,"---re_conn_size=%d",reconn_server_id_.size());
     int size=reconn_server_id_.size();
     for (int i=0;i<size;) {
         sprintf(spec, "tcp:%s", 
             tbsys::CNetUtil::addrToString(
                 reconn_server_id_[i]).c_str());
+        TBSYS_LOG(ERROR,"---size=%d,i=%d,spec=%s",
+            size,i,spec);
         tbnet::Connection* conn=_transport->connect(
             spec,_streamer,false);
         if (NULL==conn) {
+            TBSYS_LOG(ERROR,"====================1");
             i++;
             continue;
         }
+        conn->setDefaultPacketHandler(this);
+        conn->setQueueLimit(_queueLimit);
+        conn->setQueueTimeout(_queueTimeout);
+
         req=new RequestPacket();
+        req->src_type_=SERVER_TYPE_ACCESS_SERVER;
+        req->src_id_=self_server_id_;
+        req->dest_type_=dest_server_type_;
+        req->dest_id_=reconn_server_id_[i];
+        req->msg_id_=PUBLIC_REGISTER_REQ;
+
         if (false == conn->postPacket(req,
             this,conn,false)) {
+            TBSYS_LOG(ERROR,"====================2");
             _transport->disconnect(conn);
             delete req;
             i++;
@@ -351,66 +385,17 @@ tbnet::Packet *packet, void *args) {
     tbnet::Connection* conn;
 
     if (!packet->isRegularPacket()) { // 是否正常的包
+        //server close,not call this function
         tbnet::ControlPacket* ctrl_packet=(tbnet::ControlPacket* )packet;
         int cmd=ctrl_packet->getCommand();
         if (tbnet::ControlPacket::CMD_DISCONN_PACKET==cmd) {
             tbnet::Socket* socket=(tbnet::Socket* )args;
             server_id=socket->getId();
-/*            bool have=false;
-            //check has deleted
-            create_conn_mutex_.lock();
-            for (i=0;i<size;i++) {
-                if (inconnect_server_id_[i]==server_id) {
-                    have=true;
-                    break;
-                }
-            }
-            create_conn_mutex_.unlock();
-            if (!have) {
-                send_conn_rw_lock_.wrlock();
-                TBNET_CONN_MAP::iterator it=send_conn_map_.find(server_id);
-                if (send_conn_map_.end()!=it) {
-                    have=true;
-                }
-                send_conn_rw_lock_.unlock();
-            }
-            if (!have) {
-                / * TCPComponent* tcpc=(TCPComponent* )socket->getIOComponent();
-                conn=tcpc->getConnection();
-                _transport->disconnect(conn);* /
-                //15min延迟释放
-            } else */{
-                DisToReconnect(server_id);
-            }
+            DisToReconnect(server_id);
         } else if (tbnet::ControlPacket::CMD_TIMEOUT_PACKET==cmd) {
             conn=(tbnet::Connection* )args;
             server_id=conn->getServerId();
-/*            bool have=false;
-            //check has deleted
-            create_conn_mutex_.lock();
-            for (i=0;i<size;i++) {
-                if (inconnect_server_id_[i]==server_id) {
-                    have=true;
-                    break;
-                }
-            }
-            create_conn_mutex_.unlock();
-            if (!have) {
-                send_conn_rw_lock_.wrlock();
-                TBNET_CONN_MAP::iterator it=send_conn_map_.find(server_id);
-                if (send_conn_map_.end()!=it) {
-                    have=true;
-                }
-                send_conn_rw_lock_.unlock();
-            }
-            if (!have) {
-                / * TCPComponent* tcpc=(TCPComponent* )socket->getIOComponent();
-                conn=tcpc->getConnection();
-                _transport->disconnect(conn);* /
-                //15min延迟释放
-            } else */{
-                DisToReconnect(server_id);
-            }            
+            DisToReconnect(server_id);
         }
         return IPacketHandler::FREE_CHANNEL;
     }
@@ -428,8 +413,6 @@ tbnet::Packet *packet, void *args) {
             server_id=inconn_server_id_[i];
             inconn_server_id_.erase(inconn_server_id_.begin()+i);
             conn_ok=true;
-        } else {
-            _transport->disconnect(conn);
         }
         break;
     }
@@ -438,10 +421,12 @@ tbnet::Packet *packet, void *args) {
     if (conn_ok) {
         send_conn_rw_lock_.wrlock();
         assert(send_conn_map_.end()==send_conn_map_.find(server_id));
+        send_server_id_.push_back(server_id);
         send_conn_map_[server_id] = conn;
         send_conn_rw_lock_.unlock();
     } else {
         _transport->disconnect(conn);
+        DisToReconnect(conn->getServerId());
     }
 
     return IPacketHandler::FREE_CHANNEL;

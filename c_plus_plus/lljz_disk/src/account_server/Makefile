@@ -32,7 +32,7 @@ REDIS_LIB=/usr/local/lib/libhiredis.a
 #REDIS_LIB=/home/lljz/lib/hiredis/lib/libhiredis.a
 
 PROJECT_INC=-I../packets -I../protocol -I../utility -I../public_handler -I./account_server_handler -I../redis -I../public
-VPATH=../packets ../utility ../public_handler ./account_server_handler ../redis
+VPATH=../packets ../utility ../public_handler ./account_server_handler ../redis ../public
 
 #OUTPUT_PATH=../../output/account_server
 OUTPUT_PATH=./
