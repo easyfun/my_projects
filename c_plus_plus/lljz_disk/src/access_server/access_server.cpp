@@ -100,9 +100,6 @@ int AccessServer::Initialize() {
         return EXIT_FAILURE;
     }
 
-//    self_server_id_=42992639410303;
-    printf("----self_server_id_=%llu\n",
-        self_server_id_);
     return EXIT_SUCCESS;
 }
 
@@ -117,8 +114,6 @@ tbnet::IPacketHandler::HPRetCode
 AccessServer::handlePacket(
 tbnet::Connection *connection, 
 tbnet::Packet *packet) {
-    printf("----self_server_id_=%llu\n",
-        self_server_id_);
     if (!packet->isRegularPacket()) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
             ((tbnet::ControlPacket* )packet)->getCommand());
@@ -126,13 +121,6 @@ tbnet::Packet *packet) {
         return IPacketHandler::FREE_CHANNEL;
     }
 
-    RequestPacket *req = (RequestPacket *) packet;
-/*    TBSYS_LOG(DEBUG,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
-        "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
-        req->getChannelId(),req->getPCode(),req->msg_id_,
-        req->src_type_,req->src_id_,req->dest_type_,
-        req->dest_id_,req->data_);
-*/
     BasePacket* bp=(BasePacket* )packet;
     bp->set_recv_time(tbsys::CTimeUtil::getTime());
     bp->set_connection(connection);
@@ -171,7 +159,7 @@ tbnet::Packet * apacket, void *args) {
         case REQUEST_PACKET: {
             RequestPacket *client_req = (RequestPacket *)packet;
 
-            TBSYS_LOG(ERROR,"client_req:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+            TBSYS_LOG(DEBUG,"client_req:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
                 "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
                 client_req->getChannelId(),client_req->getPCode(),
                 client_req->msg_id_,client_req->src_type_,
@@ -192,7 +180,7 @@ tbnet::Packet * apacket, void *args) {
             access_req->version_=client_req->version_;
             strcat(access_req->data_,client_req->data_);
 
-            TBSYS_LOG(ERROR,"access_req:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+            TBSYS_LOG(DEBUG,"access_req:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
                 "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
                 access_req->getChannelId(),access_req->getPCode(),
                 access_req->msg_id_,access_req->src_type_,

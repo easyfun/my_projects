@@ -208,7 +208,6 @@ bool ConnectionManagerToServer::PostPacket(
 uint16_t server_type,
 tbnet::Packet* packet, 
 void* args) {
-    TBSYS_LOG(ERROR,"-------server_type=%u",server_type);
     __gnu_cxx::hash_map<uint16_t,
         LoadConnectionManager*>::iterator it;
     LoadConnectionManager* lcm=NULL;
@@ -220,7 +219,7 @@ void* args) {
     mutex_.unlock();
 
     if (lcm==NULL) {
-        TBSYS_LOG(ERROR,"------false");
+        TBSYS_LOG(DEBUG,"lcm==NULL");
         return false;
     }
     return lcm->sendPacket(packet,packet_handler_to_server_,args);

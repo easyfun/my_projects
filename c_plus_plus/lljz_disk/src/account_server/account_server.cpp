@@ -104,22 +104,12 @@ tbnet::IPacketHandler::HPRetCode
 AccountServer::handlePacket(
 tbnet::Connection *connection, 
 tbnet::Packet *packet) {
-    TBSYS_LOG(DEBUG,"%s",
-        "AccountServer::handlePacket");
-
     if (!packet->isRegularPacket()) {
         TBSYS_LOG(ERROR,"ControlPacket, cmd: %d",
             ((tbnet::ControlPacket* )packet)->getCommand());
 
         return IPacketHandler::FREE_CHANNEL;
     }
-
-    RequestPacket *req = (RequestPacket *) packet;
-    TBSYS_LOG(ERROR,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
-        "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
-        req->getChannelId(),req->getPCode(),req->msg_id_,
-        req->src_type_,req->src_id_,req->dest_type_,
-        req->dest_id_,req->data_);
 
     BasePacket* bp=(BasePacket* )packet;
     bp->set_recv_time(tbsys::CTimeUtil::getTime());
@@ -132,8 +122,6 @@ tbnet::Packet *packet) {
 
 bool AccountServer::handlePacketQueue(
 tbnet::Packet * apacket, void *args) {
-    TBSYS_LOG(DEBUG,"%s",
-        "AccountServer::handlePacketQueue");
     BasePacket *packet = (BasePacket *) apacket;
     tbnet::Connection* conn=packet->get_connection();
     int64_t now_time=tbsys::CTimeUtil::getTime();
@@ -159,8 +147,13 @@ tbnet::Packet * apacket, void *args) {
     int pcode = apacket->getPCode();
     switch (pcode) {
         case REQUEST_PACKET: {
-            TBSYS_LOG(DEBUG,"%s","REQUEST_PACKET");
             RequestPacket *req = (RequestPacket *)packet;
+            TBSYS_LOG(DEBUG,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+                "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+                req->getChannelId(),req->getPCode(),req->msg_id_,
+                req->src_type_,req->src_id_,req->dest_type_,
+                req->dest_id_,req->data_);
+
             //检查注册状态
             ResponsePacket* resp=new ResponsePacket();
             if (NULL==resp) {
@@ -200,12 +193,6 @@ tbnet::Packet * apacket, void *args) {
                 TBSYS_LOG(DEBUG,"%s","not register");
                 return true;
             }
-/*            if (PUBLIC_ECHO_TEST_REQ==req->msg_id_) {
-                strcat(resp->data_,req->data_);
-                if (false==conn->postPacket(resp)) {
-                    delete resp;
-                }
-            }*/
             //普通业务处理
             resp->set_recv_time(now_time);
             Handler handler=HANDLER_ROUTER.GetHandler(
@@ -215,6 +202,13 @@ tbnet::Packet * apacket, void *args) {
             } else {
                 handler(req,NULL,resp);
             }
+
+            TBSYS_LOG(DEBUG,"resp:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+                "src_id=%u|dest_type=%u|dest_id=%llu|data=%s",
+                resp->getChannelId(),resp->getPCode(),resp->msg_id_,
+                resp->src_type_,resp->src_id_,resp->dest_type_,
+                resp->dest_id_,resp->data_);
+
             conn_manager_from_client_.PostPacket(
                 resp->dest_id_, resp);
             return true;

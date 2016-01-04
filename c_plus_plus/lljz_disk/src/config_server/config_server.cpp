@@ -71,13 +71,6 @@ tbnet::Connection *connection, tbnet::Packet *packet) {
         return tbnet::IPacketHandler::FREE_CHANNEL;
     }
 
-    RequestPacket *req = (RequestPacket *) packet;
-    TBSYS_LOG(DEBUG,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
-        "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
-        req->getChannelId(),req->getPCode(),req->msg_id_,
-        req->src_type_,req->src_id_,req->dest_type_,
-        req->dest_id_,req->data_);
-
     BasePacket* bp=(BasePacket* )packet;
     bp->set_recv_time(tbsys::CTimeUtil::getTime());
     bp->set_connection(connection);
@@ -108,13 +101,17 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
     int pcode = packet->getPCode();
     switch (pcode) {
         case REQUEST_PACKET: {
-            TBSYS_LOG(DEBUG,"%s","--------begin");
             RequestPacket *req = (RequestPacket *) packet;
+            TBSYS_LOG(DEBUG,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+                "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+                req->getChannelId(),req->getPCode(),req->msg_id_,
+                req->src_type_,req->src_id_,req->dest_type_,
+                req->dest_id_,req->data_);
+
             if (CONFIG_SERVER_GET_SERVICE_LIST_REQ==req->msg_id_) {
                 /*
                 T500:7000tps
                 */
-                TBSYS_LOG(DEBUG,"%s","--------begin-2");
                 ResponsePacket *resp = new ResponsePacket();
                 if (NULL==resp) {
                     TBSYS_LOG(DEBUG,"%s","memmory is not enough");
@@ -209,14 +206,15 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 Value resp_json_srv_info(kArrayType);
 
                 for (it=server_url_.begin();
-                server_url_.end()!=it && size>0
-                ;it++) {
-                    TBSYS_LOG(DEBUG,"ServerURLInfo:spec_=%s,server_type_=%u,server_id_=%u",
+                server_url_.end()!=it && size>0;
+                it++) {
+                    srv_url_info=it->second;
+                    TBSYS_LOG(DEBUG,"ServerURLInfo:spec_=%s,server_type_=%u,server_id_=%llu",
                         srv_url_info->spec_,
                         srv_url_info->server_type_,
                         srv_url_info->server_id_);
+
                     for (int i=0;i<size;i++) {
-                        srv_url_info=it->second;
                         if (srv_url_info->server_type_ !=
                             json_dep_srv_type[i].GetUint()) {
                             continue;
@@ -244,10 +242,10 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 StringBuffer resp_buffer;
                 Writer<StringBuffer> writer(resp_buffer);
                 resp_json.Accept(writer);
-                std::string resp_data=resp_buffer.GetString();
-                strcat(resp->data_,resp_data.c_str());
+                strcat(resp->data_,resp_buffer.GetString());
+
                 TBSYS_LOG(DEBUG,"resp:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
-                    "src_id=%u|dest_type=%u|dest_id=%u|data=%s",
+                    "src_id=%u|dest_type=%u|dest_id=%llu|data=%s",
                     resp->getChannelId(),resp->getPCode(),resp->msg_id_,
                     resp->src_type_,resp->src_id_,resp->dest_type_,
                     resp->dest_id_,resp->data_);
@@ -272,7 +270,7 @@ bool ConfigServer::handlePacketQueue(tbnet::Packet * apacket, void *args) {
                 strcat(resp->data_,req->data_);
 
                 TBSYS_LOG(DEBUG,"resp:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
-                    "src_id=%u|dest_type=%u|dest_id=%u|data=%s",
+                    "src_id=%u|dest_type=%u|dest_id=%llu|data=%s",
                     resp->getChannelId(),resp->getPCode(),resp->msg_id_,
                     resp->src_type_,resp->src_id_,resp->dest_type_,
                     resp->dest_id_,resp->data_);

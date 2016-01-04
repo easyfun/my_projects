@@ -49,7 +49,7 @@ client_one:client_one.cpp
 	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
 	$(JSON_INC) $(JSON_LIB) -lpthread -lrt
 
-test_echo:test_echo.cpp
+client_test_echo:client_test_echo.cpp
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
 	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
 	$(JSON_INC) $(JSON_LIB) -lpthread -lrt

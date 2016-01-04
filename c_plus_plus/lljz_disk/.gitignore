@@ -13,4 +13,6 @@ client_one
 test_echo
 config_server
 core
-
+access_server
+file_server
+account_server

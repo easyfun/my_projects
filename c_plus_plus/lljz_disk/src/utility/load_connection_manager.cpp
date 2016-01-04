@@ -214,7 +214,7 @@ void *args, bool noblocking) {
         conn=it->second;
 
         RequestPacket *req = (RequestPacket *) packet;
-        TBSYS_LOG(ERROR,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
+        TBSYS_LOG(DEBUG,"req :chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
             "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
             req->getChannelId(),req->getPCode(),req->msg_id_,
             req->src_type_,req->src_id_,req->dest_type_,
