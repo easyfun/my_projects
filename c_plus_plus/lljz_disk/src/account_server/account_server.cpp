@@ -204,10 +204,10 @@ tbnet::Packet * apacket, void *args) {
             }
 
             TBSYS_LOG(DEBUG,"resp:chanid=%u|pcode=%u|msg_id=%u|src_type=%u|"
-                "src_id=%u|dest_type=%u|dest_id=%llu|data=%s",
+                "src_id=%u|dest_type=%u|dest_id=%llu|error_code=%u|data=%s",
                 resp->getChannelId(),resp->getPCode(),resp->msg_id_,
                 resp->src_type_,resp->src_id_,resp->dest_type_,
-                resp->dest_id_,resp->data_);
+                resp->dest_id_,resp->error_code_,resp->data_);
 
             conn_manager_from_client_.PostPacket(
                 resp->dest_id_, resp);

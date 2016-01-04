@@ -373,19 +373,19 @@ tbnet::Packet * apacket, void *args) {
                 server_url_[i]->server_type_);
 
             if (conn_manager_.end()!=it) {
-                //load_conn_manager=it->second;
-                assert(false);
-                continue;
+                load_conn_manager=it->second;
+                //assert(false);
+                //continue;
+            } else {
+                load_conn_manager=new LoadConnectionManager(
+                    transport_,
+                    packet_streamer_,
+                    self_server_id_,
+                    server_url_[i]->server_type_,                
+                    packet_handler_to_server_);//后端连接断开处理
+                conn_manager_[server_url_[i]->server_type_]=
+                    load_conn_manager;
             }
-
-            load_conn_manager=new LoadConnectionManager(
-                transport_,
-                packet_streamer_,
-                self_server_id_,
-                server_url_[i]->server_type_,                
-                packet_handler_to_server_);//后端连接断开处理
-            conn_manager_[server_url_[i]->server_type_]=
-                load_conn_manager;
             load_conn_manager->connect(
                 server_url_[i]->server_id_,false);
         } else if (2==server_url_[i]->changed_) {

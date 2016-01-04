@@ -6,7 +6,7 @@ namespace disk {
 void PublicEchoTestReqHandler(
 RequestPacket* req,
 void* args,ResponsePacket* resp) {
-    strcat(resp->data_,req->data_);
+    //strcat(resp->data_,req->data_);
 }
 
 }
