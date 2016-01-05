@@ -13,6 +13,7 @@ LoadConnection::~LoadConnection() {
 }
 
 bool LoadConnection::Connect(tbnet::Transport* transport) {
+    
     return true;
 }
 
