@@ -2,7 +2,7 @@ CC = gcc
 CPP = gcc -E
 CXX = g++
 CXXCPP = g++ -E
-CXXFLAGS = -O3 -Wall -Wno-deprecated -fPIC
+CXXFLAGS = -O3 -Wall -Wno-deprecated -fPIC -std=c++11
 CXXLINK=$(CXX) -g
 CXXCOMPILE=$(CXX) -c -g
 
@@ -27,15 +27,15 @@ JSON_INC=$(RAPIDJSON_INC)
 JSON_LIB=$(RAPIDJSON_LIB)
 
 PROJECT_INC=-I../packets -I../public
-#VPATH=../packets 
+VPATH=../packets ../public
 
 #OUTPUT_PATH=../../output/access_server
 OUTPUT_PATH=./
 
-access_server:main.o access_server.o global.o
+access_server:main.o access_server.o global.o manager_client.o manager_server.o load_connection.o
 	cd $(OUTPUT_PATH) && \
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/access_server \
-		$^ $(TBSDK_INC) $(TBSDK_LIB) $(JSON_LIB) -lpthread -lrt
+		$^ $(TBSDK_LIB) $(JSON_LIB) -lpthread -lrt
 
 main.o:main.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
@@ -47,6 +47,18 @@ access_server.o:access_server.cpp
 		$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
 
 global.o:global.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
+		$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
+
+manager_client.o:manager_client.cpp		
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
+		$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
+
+manager_server.o:manager_server.cpp
+	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
+		$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
+
+load_connection.o:load_connection.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
 

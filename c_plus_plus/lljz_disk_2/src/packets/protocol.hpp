@@ -1,3 +1,6 @@
+#ifndef LLJZ_DISK_PROTOCOL_H_
+#define LLJZ_DISK_PROTOCOL_H_
+
 namespace lljz {
 namespace disk {
 
@@ -90,3 +93,4 @@ enum FileServerMsg {
 
 }
 }
+#endif

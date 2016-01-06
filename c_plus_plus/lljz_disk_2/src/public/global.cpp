@@ -1,4 +1,16 @@
+#include "tbsys.h"
+#include "tbnet.h"
+
+#include "rapidjson/document.h"
+#include "rapidjson/writer.h"
+#include "rapidjson/stringbuffer.h"
+
+#include "base_packet.hpp"
+#include "request_packet.hpp"
+#include "response_packet.hpp"
 #include "global.h"
+
+using namespace rapidjson;
 
 namespace lljz {
 namespace disk {

@@ -11,18 +11,40 @@ namespace disk {
 
 class LoadConnection {
 public:
-    LoadConnection(uint16_t server_type);
+    LoadConnection(uint16_t server_type,
+        tbnet::Transport* transport, 
+        tbnet::IPacketStreamer* streamer, 
+        tbnet::IPacketHandler* packetHandler);
     ~LoadConnection();
 
-    bool Connect(tbnet::Transport* transport);
-//    void DisConnect();
+    void setDefaultQueueLimit(int queueLimit) {
+        _queueLimit=queueLimit;
+    }
 
-//    bool postPacket();
+    void setDefaultQueueTimeout(int queueTimeout) {
+        _queueTimeout=queueTimeout;
+    }
+
+    bool Connect();
+    void DisConnect();
+
+    bool postPacket(tbnet::Packet *packet, 
+        tbnet::IPacketHandler *packetHandler = NULL, 
+        void *args = NULL, 
+        bool noblocking = true);
 
 private:
     uint16_t server_type_;
+    tbnet::Transport *_transport;
+    tbnet::IPacketStreamer *_streamer;
+    tbnet::IPacketHandler *_packetHandler;
+    int _queueLimit;
+    int _queueTimeout;
+
     tbnet::Connection* conns_[MAX_SERVER_NUM];
     int conn_num_;
+//    int last_send_conn_index_;
+
 };
 
 }

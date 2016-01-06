@@ -60,7 +60,7 @@ client_test_echo_register:client_test_echo_register.cpp
 	$(JSON_INC) $(JSON_LIB) -lpthread -lrt
 
 lock_test:lock_test.cpp
-	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ $^ \
+	$(CXXLINK) $(CXXFLAGS) -std=c++11 -o $(OUTPUT_PATH)/$@ $^ \
 	$(TBSDK_INC) $(TBSDK_LIB) $(PROJECT_INC) \
 	$(JSON_INC) $(JSON_LIB) -lpthread -lrt
 

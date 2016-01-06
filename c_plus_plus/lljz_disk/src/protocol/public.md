@@ -87,7 +87,7 @@ M:PUBLIC_REGISTER_REQ
 2 服务未注册
 3 server_type not supported
 4 msg_id not supported
-5 dest server cannot at
+5 can not reach to dest_server
 
 //config_server 10001~15000
 10001 请求参数错误srv_id

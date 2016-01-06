@@ -52,6 +52,7 @@ namespace disk {
          direction_ = IO_DIRECTION_SEND;
          no_free_=false;
          recv_time_ = 0;
+         args_=NULL;
       }
 
       virtual ~BasePacket() {
@@ -70,6 +71,14 @@ namespace disk {
       // direction
       void set_direction(int direction) {
          direction_ = direction;
+      }
+
+      void* get_args() {
+         return args_;
+      }
+
+      void set_args(void* args) {
+         args_=args;
       }
 
       // direction
@@ -103,7 +112,7 @@ namespace disk {
       tbnet::Connection *connection_;
       int direction_;
       bool no_free_;
-
+      void* args_;//作为客户端，handlePacket(,args)
    protected:
       int64_t recv_time_;
    };

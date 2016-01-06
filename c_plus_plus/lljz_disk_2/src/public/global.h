@@ -1,6 +1,7 @@
 #ifndef LLJZ_DISK_GLOBAL_H
 #define LLJZ_DISK_GLOBAL_H
 
+/*
 #include "tbsys.h"
 #include "tbnet.h"
 
@@ -13,6 +14,7 @@
 #include "response_packet.hpp"
 
 using namespace rapidjson;
+*/
 
 namespace lljz {
 namespace disk {

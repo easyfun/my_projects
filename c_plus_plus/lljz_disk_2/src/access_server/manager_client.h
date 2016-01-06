@@ -1,21 +1,27 @@
 #ifndef LLJZ_DISK_MANAGER_CLIENT_H
 #define LLJZ_DISK_MANAGER_CLIENT_H
 
-#include "tbsys.h"
-#include "tbnet.h"
-#include "packet_factory.hpp"
+//#include "tbsys.h"
+//#include "tbnet.h"
+//#include "packet_factory.hpp"
 
 namespace lljz {
 namespace disk {
 
-class ManagerClient : public tbnet::IServerAdapter,
+//class ManagerServer;
+
+class ManagerClient:public tbsys::Runnable,
+public tbnet::IServerAdapter,
 public tbnet::IPacketQueueHandler {
 public:
     ManagerClient();
     ~ManagerClient();
 
-    void Start();
-    void Stop();
+    bool start();
+    bool wait();
+    bool stop();
+    int initialize();
+    void destroy();
 
     //IServerAdapter interface
     virtual tbnet::IPacketHandler::HPRetCode 
@@ -25,20 +31,31 @@ public:
     // IPacketQueueHandler interface
     bool handlePacketQueue(tbnet::Packet * apacket, void *args);
 
-    //IBusinessPacketHandler interface
-    bool BusinessHandlePacket(
-        tbnet::Packet *packet, void *args);
+    //Runnable
+    void run(tbsys::CThread* thread, void* arg);
+
+    void set_manager_server(ManagerServer* manager_server) {
+        manager_server_=manager_server;
+    }
+
+    void set_channel_pool(tbnet::ChannelPool* channel_pool) {
+        channel_pool_=channel_pool;
+    }
+
 
 private:
-    inline int Initialize();
-    inline int Destroy();
+    ManagerServer* manager_server_;
+    tbnet::ChannelPool* channel_pool_;
 
-private:
     PacketFactory packet_factory_;
     tbnet::DefaultPacketStreamer packet_streamer_;
     tbnet::Transport transport_for_client_;
 
     tbnet::PacketQueueThread task_queue_thread_;
+
+    bool stop_;
+    tbsys::CThread timer_thread_;
+
     //客户端packet统计信息
     uint64_t client_disconn_throw_packets_;   // 客户端连接失效丢弃的请求包数
     uint64_t queue_thread_timeout_throw_packets_;   // PacketQueueThread排队超时丢弃的请求包数

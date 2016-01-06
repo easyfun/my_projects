@@ -6,7 +6,7 @@
 namespace lljz {
 namespace disk {
 
-#define RESPONSE_PACKET_HEAD_LEN 28
+#define RESPONSE_PACKET_HEAD_LEN 36
 #define RESPONSE_PACKET_MAX_SIZE 32768
 
 // [note] need free by manual
@@ -19,6 +19,7 @@ public:
         dest_type_=0;
         dest_id_=0;
         msg_id_=0;
+        append_args_=0;
         error_code_=0;
         memset(data_,0,RESPONSE_PACKET_MAX_SIZE);
     }
@@ -33,6 +34,7 @@ public:
         output->writeInt16(dest_type_);
         output->writeInt64(dest_id_);
         output->writeInt32(msg_id_);
+        output->writeInt64(append_args_);
         output->writeInt32(error_code_);
         output->writeBytes(data_, strlen(data_));
         return true;
@@ -55,6 +57,7 @@ public:
         dest_type_=input->readInt16();
         dest_id_=input->readInt64();
         msg_id_=input->readInt32();
+        append_args_=input->readInt64();
         error_code_=input->readInt32();
         if (!input->readBytes(data_,header->_dataLen-RESPONSE_PACKET_HEAD_LEN)) {
             return false;
@@ -71,6 +74,7 @@ public:
     uint32_t msg_id_;   //消息id
     //请求id，继承自Packet::_packetHeader._chid
     //uint32_t version_;  //消息版本号
+    uint64_t append_args_;
     uint32_t error_code_; //错误码
     char data_[RESPONSE_PACKET_MAX_SIZE]; //
 };

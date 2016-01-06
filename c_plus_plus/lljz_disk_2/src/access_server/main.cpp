@@ -4,16 +4,17 @@
 #include <stdlib.h>
 #include <tbsys.h>
 #include <tbnet.h>
-#include "access_server.hpp"
+#include "shared.h"
+#include "access_server.h"
 
-lljz::disk::AccessServer* access_srv = NULL;
+lljz::disk::IServerEntry* g_iserver_entry = NULL;
 
 void sign_handler(int sig) {
   switch (sig) {
   case SIGTERM:
   case SIGINT:
-    if(access_srv != NULL) {
-      access_srv->Stop();
+    if(NULL != g_iserver_entry) {
+      g_iserver_entry->stop();
     }
     break;
   case 40:
@@ -96,39 +97,44 @@ int main(int argc, char *argv[])
     }
   }
 
-/*  int pid;
-  if((pid = tbsys::CProcess::existPid(sz_pid_file))) {
-    fprintf(stderr, "program has been exist: pid=%d\n", pid);
-    return EXIT_FAILURE;
-  }
-*/
-
   const char* sz_log_level = TBSYS_CONFIG.getString(
     "server", "log_level", "info");
   TBSYS_LOGGER.setLogLevel(sz_log_level);
 
+  int daemon = TBSYS_CONFIG.getInt("server", "daemon", 0);
+  if (0 != daemon) {
+    int pid;
+    if((pid = tbsys::CProcess::existPid(sz_pid_file))) {
+      fprintf(stderr, "program has been exist: pid=%d\n", pid);
+      return EXIT_FAILURE;
+    }
 
-/*  if(tbsys::CProcess::startDaemon(sz_pid_file, sz_log_file) == 0)*/ {
-    signal(SIGPIPE, SIG_IGN);
-    signal(SIGHUP, SIG_IGN);
-    signal(SIGINT, sign_handler);
-    signal(SIGTERM, sign_handler);
-    signal(40, sign_handler);
-    signal(41, sign_handler);
-    signal(42, sign_handler);
-
-    access_srv = new lljz::disk::AccessServer();
-    access_srv->Start();
-
-    // ignore signal when destroy, cause sig_handler may use access_srv between delete and set it to NULL.
-    signal(SIGINT, SIG_IGN);
-    signal(SIGTERM, SIG_IGN);
-
-    delete access_srv;
-    access_srv = NULL;
-
-    TBSYS_LOG(ERROR,"%s\n","exit program.");
+    if(tbsys::CProcess::startDaemon(sz_pid_file, sz_log_file) != 0) {
+      fprintf(stderr, "start daemon fail");
+      return EXIT_FAILURE;
+    }
   }
+
+  signal(SIGPIPE, SIG_IGN);
+  signal(SIGHUP, SIG_IGN);
+  signal(SIGINT, sign_handler);
+  signal(SIGTERM, sign_handler);
+  signal(40, sign_handler);
+  signal(41, sign_handler);
+  signal(42, sign_handler);
+
+  g_iserver_entry = new lljz::disk::AccessServer();
+  assert(g_iserver_entry);
+  g_iserver_entry->start();
+
+  // ignore signal when destroy, cause sig_handler may use access_srv between delete and set it to NULL.
+  signal(SIGINT, SIG_IGN);
+  signal(SIGTERM, SIG_IGN);
+
+  delete g_iserver_entry;
+  g_iserver_entry = NULL;
+
+  TBSYS_LOG(ERROR,"%s\n","exit program.");
 
   return EXIT_SUCCESS;
 }
