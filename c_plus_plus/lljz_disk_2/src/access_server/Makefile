@@ -32,7 +32,7 @@ VPATH=../packets ../public
 #OUTPUT_PATH=../../output/access_server
 OUTPUT_PATH=./
 
-access_server:main.o access_server.o global.o manager_client.o manager_server.o load_connection.o
+access_server:main.o server_entry.o global.o manager_client.o manager_server.o load_connection.o
 	cd $(OUTPUT_PATH) && \
 	$(CXXLINK) $(CXXFLAGS) -o $(OUTPUT_PATH)/access_server \
 		$^ $(TBSDK_LIB) $(JSON_LIB) -lpthread -lrt
@@ -42,7 +42,7 @@ main.o:main.cpp
 		$^ $(TBSDK_INC) $(PROJECT_INC) \
 		$(JSON_INC) -lpthread -lrt
 
-access_server.o:access_server.cpp
+server_entry.o:server_entry.cpp
 	$(CXXCOMPILE) $(CXXFLAGS) -o $(OUTPUT_PATH)/$@ \
 		$^ $(TBSDK_INC) $(PROJECT_INC) $(JSON_INC)
 

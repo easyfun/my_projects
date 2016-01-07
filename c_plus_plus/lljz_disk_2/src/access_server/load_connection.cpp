@@ -12,7 +12,7 @@ tbnet::IPacketHandler* packetHandler)
 ,_streamer(streamer)
 ,_packetHandler(packetHandler)
 ,_queueLimit(0)
-,_queueTimeout(15000) {//15s 
+,_queueTimeout(10000) {//10000ms 
     memset(conns_,0,sizeof(conns_));
     conn_num_=0;
 }

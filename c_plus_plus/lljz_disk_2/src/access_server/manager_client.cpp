@@ -183,9 +183,9 @@ tbnet::Packet * apacket, void *args) {
         case REQUEST_PACKET: {
             RequestPacket *client_req = (RequestPacket *)packet;
 
-            TBSYS_LOG(DEBUG,"client_req:chanid=%u|pcode=%u|msg_id=%u"
+            TBSYS_LOG(DEBUG,"client_req:chanid=%u|pcode=%u|msg_id=%lu|"
                 "version=%u|append_args=%llu|src_type=%u|"
-                "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+                "src_id=%llu|dest_type=%u|dest_id=%llu|data=%s",
                 client_req->getChannelId(),client_req->getPCode(),
                 client_req->msg_id_,client_req->version_,
                 client_req->append_args_,client_req->src_type_,
@@ -235,6 +235,16 @@ tbnet::Packet * apacket, void *args) {
             channel_pool_->setExpireTime(channel,req_info->expire_time_);
 
             access_req->append_args_=id;
+
+            TBSYS_LOG(DEBUG,"access_req:chanid=%u|pcode=%u|msg_id=%lu"
+                "version=%u|append_args=%llu|src_type=%u|"
+                "src_id=%llu|dest_type=%u|dest_id=%llu|data=%s",
+                access_req->getChannelId(),access_req->getPCode(),
+                access_req->msg_id_,access_req->version_,
+                access_req->append_args_,access_req->src_type_,
+                access_req->src_id_,access_req->dest_type_,
+                access_req->dest_id_,access_req->data_);
+
             if (!manager_server_->postPacket(access_req->dest_type_,access_req,NULL)) {
                 //发送失败
                 channel_pool_->freeChannel(channel);
@@ -256,9 +266,9 @@ tbnet::Packet * apacket, void *args) {
             //发送到客户端
             ResponsePacket *server_resp = (ResponsePacket *)packet;
 
-            TBSYS_LOG(DEBUG,"server_resp:chanid=%u|pcode=%u|msg_id=%u"
+            TBSYS_LOG(DEBUG,"server_resp:chanid=%lu|pcode=%u|msg_id=%lu|"
                 "append_args=%llu|error_code=%u|src_type=%u|"
-                "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
+                "src_id=%llu|dest_type=%u|dest_id=%llu|data=%s",
                 server_resp->getChannelId(),server_resp->getPCode(),
                 server_resp->msg_id_,server_resp->append_args_,
                 server_resp->error_code_,server_resp->src_type_,
@@ -281,6 +291,7 @@ tbnet::Packet * apacket, void *args) {
             }
 
             ResponsePacket* resp=new ResponsePacket();
+            resp->setChannelId(req_info->chid_);
             resp->src_type_=server_resp->src_type_;
             resp->src_id_=server_resp->src_id_;
             resp->dest_type_=req_info->src_type_;
@@ -290,7 +301,7 @@ tbnet::Packet * apacket, void *args) {
             resp->error_code_=server_resp->error_code_;
             strcat(resp->data_,server_resp->data_);
 
-            TBSYS_LOG(DEBUG,"server_resp:chanid=%u|pcode=%u|msg_id=%u"
+            TBSYS_LOG(DEBUG,"server_resp:chanid=%u|pcode=%u|msg_id=%lu|"
                 "append_args=%llu|error_code=%u|src_type=%u|"
                 "src_id=%llu|dest_type=%u|dest_id=%u|data=%s",
                 resp->getChannelId(),resp->getPCode(),

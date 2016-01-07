@@ -31,8 +31,8 @@ using namespace std;
 namespace lljz {
 namespace disk {
 
-   #define PACKET_IN_PACKET_QUEUE_THREAD_MAX_TIME  180000000   //180s
-   #define PACKET_WAIT_FOR_SERVER_MAX_TIME         180000000   //180s
+   #define PACKET_IN_PACKET_QUEUE_THREAD_MAX_TIME  60000000   //60s
+   #define PACKET_WAIT_FOR_SERVER_MAX_TIME         60000000   //60s
 
    //Packet type
    enum PacketType {

@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <tbsys.h>
 #include <tbnet.h>
+
 #include "shared.h"
-#include "access_server.h"
+#include "server_entry.h"
 
 lljz::disk::IServerEntry* g_iserver_entry = NULL;
 
@@ -13,7 +14,7 @@ void sign_handler(int sig) {
   switch (sig) {
   case SIGTERM:
   case SIGINT:
-    if(NULL != g_iserver_entry) {
+    if(g_iserver_entry != NULL) {
       g_iserver_entry->stop();
     }
     break;
@@ -67,16 +68,25 @@ int main(int argc, char *argv[])
   // parse cmd
   parse_cmd_line(argc, argv);
   char config_file[64];
-  sprintf(config_file,"%s","./access_server.ini");
+  char* prog_name=strrchr(argv[0],'/');
+  if (NULL!=prog_name) {
+    prog_name++;
+  } else {
+    prog_name=argv[0];
+  }
+  sprintf(config_file,"./%s.ini",prog_name);
   if(TBSYS_CONFIG.load(config_file)) {
     fprintf(stderr, "load file %s error\n", config_file);
     return EXIT_FAILURE;
   }
 
+  char value[64];
+  sprintf(value,"%s.pid",prog_name);
   const char* sz_pid_file = TBSYS_CONFIG.getString(
-    "server", "pid_file", "access_server.pid");
+    "server", "pid_file", value);
+  sprintf(value,"%s.log",prog_name);
   const char* sz_log_file = TBSYS_CONFIG.getString(
-    "server", "log_file", "access_server.log");
+    "server", "log_file", value);
   if(1) {
     char* p, dir_path[256];
     sprintf(dir_path, "%s", sz_pid_file);
@@ -123,11 +133,10 @@ int main(int argc, char *argv[])
   signal(41, sign_handler);
   signal(42, sign_handler);
 
-  g_iserver_entry = new lljz::disk::AccessServer();
-  assert(g_iserver_entry);
+  g_iserver_entry = new lljz::disk::ServerEntry();
   g_iserver_entry->start();
 
-  // ignore signal when destroy, cause sig_handler may use access_srv between delete and set it to NULL.
+  // ignore signal when destroy, cause sig_handler may use g_iserver_entry between delete and set it to NULL.
   signal(SIGINT, SIG_IGN);
   signal(SIGTERM, SIG_IGN);
 

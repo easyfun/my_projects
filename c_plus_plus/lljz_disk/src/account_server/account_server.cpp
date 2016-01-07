@@ -138,6 +138,7 @@ tbnet::Packet * apacket, void *args) {
     if (conn==NULL || conn->isConnectState()==false) {
         //失效连接上的请求丢弃
         //避免失效连接上的业务处理消耗大量的时间
+        //来自接入服务，继续处理
         clientDisconnThrowPackets_++;
         TBSYS_LOG(DEBUG,"clientDisconnThrowPackets_=%d",
             clientDisconnThrowPackets_);
