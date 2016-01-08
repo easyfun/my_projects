@@ -32,9 +32,10 @@ void test_ping(RedisClientManager* manager) {
 
 void test_set(RedisClientManager* manager,int count) {
     char cmd[200];
-    int64_t start=tbsys::CTimeUtil::getTime();
+    int64_t start,end;
+    start=tbsys::CTimeUtil::getTime();
     for (int i=0;i<count;i++) {
-        sprintf(cmd,"set yjb_%d %d",i,1000+i);
+        sprintf(cmd,"set yjb_%d %s",i,"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
         RedisClient* rc=manager->GetRedisClient();
         if (NULL==rc || NULL==rc->redis_context_) {
             printf("connect redis fail\n");
@@ -46,7 +47,7 @@ void test_set(RedisClientManager* manager,int count) {
             manager->ReleaseRedisClient(rc,false);
             continue;
         }
-        printf("type=%d, str=%s\n", reply->type, reply->str);
+        //printf("type=%d, str=%s\n", reply->type, reply->str);
         if( !(reply->type == REDIS_REPLY_STATUS && strcasecmp(reply->str,"OK")==0)) {
             printf("%s","redis_client ping fail");
             freeReplyObject(reply);
@@ -57,7 +58,7 @@ void test_set(RedisClientManager* manager,int count) {
         freeReplyObject(reply);
         manager->ReleaseRedisClient(rc,true);
     }
-    int64_t end=tbsys::CTimeUtil::getTime();
+    end=tbsys::CTimeUtil::getTime();
     printf("time=%lld\n", end-start);
 }
 
@@ -195,13 +196,14 @@ int main(int argc,char* argv[]) {
 
 //    test_ping(&redis_client_manager);
 //    test_set(&redis_client_manager, 10000);
+//    test_set_one_client(&redis_client_manager, 1000);
 //    test_setnx(&redis_client_manager);
 //    test_Rcommand(&redis_client_manager);
 //    test_Rhsetnx(&redis_client_manager);
 //    test_Rhsetnx(&redis_client_manager);
 //    test_Rhmset(&redis_client_manager);
 //    test_Rhget(&redis_client_manager);
-    test_Rsunionstore(&redis_client_manager);
+//    test_Rsunionstore(&redis_client_manager);
 
     redis_client_manager.stop();
     redis_client_manager.wait();
