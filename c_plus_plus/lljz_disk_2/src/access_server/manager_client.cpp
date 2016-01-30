@@ -197,6 +197,7 @@ tbnet::Packet * apacket, void *args) {
             RequestPacket* access_req=new RequestPacket();
             if (NULL==access_req) {
                 resp=new ResponsePacket();
+                resp->setChannelId(client_req->getChannelId());
                 SetErrorMsg(5,"can not reach to dest_server,RequestPacket,memory is used out",resp);
                 if (!conn->postPacket(resp)) {
                     delete resp;
@@ -217,6 +218,7 @@ tbnet::Packet * apacket, void *args) {
             if (channel == NULL) {
                 TBSYS_LOG(WARN, "分配channel出错");
                 resp=new ResponsePacket();
+                resp->setChannelId(client_req->getChannelId());
                 SetErrorMsg(5,"can not reach to dest_server,Channel,memory is used out",resp);
                 if (!conn->postPacket(resp)) {
                     delete resp;
@@ -251,6 +253,7 @@ tbnet::Packet * apacket, void *args) {
                 delete req_info;
 
                 resp=new ResponsePacket();
+                resp->setChannelId(client_req->getChannelId());
                 SetErrorMsg(5,"can not reach to dest_server,network error",resp);
                 if (!conn->postPacket(resp)) {
                     delete resp;
