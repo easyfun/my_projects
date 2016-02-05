@@ -9,7 +9,7 @@
 
 网络框架：<br/>
 * 使用的tbsdk（tbnet，tbsys）
-* tbsdk是一个Linux下的C++服务端开发框架，结构简单清晰，高性能
+* tbsdk是一个Linux下的C++服务端开发框架，结构简单清晰，性能极高，应用层不用处理粘包问题，支持自定义编解码，事件回调极其灵活，可扩展性极强
 * [tbsdk源码地址](http://code.taobao.org/p/tb-common-utils/src/trunk/tbnet/)
 * [tbsdk框架解析](http://blog.chinaunix.net/uid-20196318-id-3142050.html)
 
