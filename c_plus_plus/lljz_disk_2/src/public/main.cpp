@@ -120,7 +120,6 @@ int main(int argc, char *argv[])
     }
 
     if(tbsys::CProcess::startDaemon(sz_pid_file, sz_log_file) != 0) {
-      fprintf(stderr, "start daemon fail");
       return EXIT_FAILURE;
     }
   }
