@@ -27,7 +27,7 @@ public:
         TBSYS_LOG(DEBUG,"redis_host=%s",redis_host);
         start_time=tbsys::CTimeUtil::getTime();
 
-        timer_thread_=new tbsys::CThread;
+        timer_thread_=new tbsys::CThread[test_thread_num];
         display_thread_.start(this,NULL);
         for (int i=0;i<test_thread_num;i++) {
             timer_thread_[i].start(this,NULL);
