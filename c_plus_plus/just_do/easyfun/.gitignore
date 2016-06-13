@@ -1,0 +1,9 @@
+*.exe
+*.o
+*.log
+tfs_client.tar.gz
+*.so
+*.a
+*.pid
+core
+core.*
