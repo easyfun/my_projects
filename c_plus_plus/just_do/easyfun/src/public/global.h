@@ -31,6 +31,9 @@ int GetCharCount(const char* str, char c);
 void GetStrValue(const char* str, 
     char c,int index, char* value);
 
+//openssl
+
+
 }
 }
 

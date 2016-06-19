@@ -7,3 +7,4 @@ tfs_client.tar.gz
 *.pid
 core
 core.*
+*.out

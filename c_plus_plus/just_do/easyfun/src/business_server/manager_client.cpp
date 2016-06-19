@@ -162,7 +162,8 @@ tbnet::Packet * apacket, void *args) {
             if (NULL==handler) {
                 resp->error_code_=4;
             } else {
-                handler(req,NULL,resp);
+                void args=0;
+                handler(req,args,resp);
             }
 
             TBSYS_LOG(DEBUG,"server_resp:chanid=%u|pcode=%u|msg_id=%u|"
