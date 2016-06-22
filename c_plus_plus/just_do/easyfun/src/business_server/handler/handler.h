@@ -27,7 +27,11 @@ namespace disk {
 extern RedisClientManager* g_account_redis;
 extern RedisClientManager* g_file_redis;
 
+extern RSA* g_serv_pri_rsa;
+extern int g_serv_pri_rsa_len;
+extern static unsigned char g_blowfish_cbc_iv[8];
 
+extern UserManager* g_userManager;
 
 /**************************************
  * module
@@ -77,7 +81,10 @@ void logoutReq(RequestPacket* req,
     void* args, 
     ResponsePacket* resp);
 
-
+//
+void appLoginReq(RequestPacket* req,
+    void* args,
+    ResponsePacket* resp);
 }
 }
 

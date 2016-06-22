@@ -8,6 +8,17 @@
 #include "rapidjson/writer.h"
 #include "rapidjson/stringbuffer.h"
 
+#include <stdio.h>
+#include <string.h>
+
+#include <openssl/evp.h>  
+#include <openssl/bio.h>  
+#include <openssl/buffer.h> 
+
+#include <openssl/md5.h>
+#include <openssl/rsa.h>
+#include <openssl/pem.h>
+
 using namespace tbnet;
 using namespace tbsys;
 using namespace rapidjson;
@@ -37,7 +48,8 @@ namespace disk {
 #include "manager_client.h"
 #include "redis_client.h"
 #include "redis_client_manager.h"
-
+#include "user_manager.h"
+#include "shared.h"
 #include "handler_router.h"
 #include "public_echo_test_req_handler.h"
 #include "handler.h"
