@@ -7,3 +7,6 @@ tfs_client.tar.gz
 *.pid
 core
 core.*
+access_server
+account_server
+*.rdb

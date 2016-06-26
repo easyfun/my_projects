@@ -8,3 +8,8 @@ tfs_client.tar.gz
 core
 core.*
 *.out
+*.rdb
+access_server
+account_server
+business_server
+
