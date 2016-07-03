@@ -6,35 +6,17 @@ CXXFLAGS = -O3 -Wall -Wno-deprecated -fPIC
 CXXLINK=$(CXX) -g
 CXXCOMPILE=$(CXX) -c -g
 
+INC_PATH=../../../lib/centos_6.6_x86_64_2.6.32/include
+LIB_PATH=../../../lib/centos_6.6_x86_64_2.6.32/lib
 
-TBSDK_LIBRARY_PATH=/home/trxh/lib
-TBSDK_LIB=$(TBSDK_LIBRARY_PATH)/lib/libtbnet.a $(TBSDK_LIBRARY_PATH)/lib/libtbsys.a
-TBSDK_INC = -I$(TBSDK_LIBRARY_PATH)/include
-JSONCPP_INC=-I/home/trxh/my_projects/jsoncpp/include
-JSONCPP_LIB=/home/trxh/my_projects/jsoncpp/libs/linux-gcc-4.8/libjson_linux-gcc-4.8_libmt.a
-RAPIDJSON_INC=-I/home/trxh/my_projects/rapidjson/include
+TBSDK_LIB=$(LIB_PATH)/libtbnet.a $(LIB_PATH)/libtbsys.a
+TBSDK_INC = -I$(INC_PATH)
+RAPIDJSON_INC=-I$(INC_PATH)
 RAPIDJSON_LIB=
 JSON_INC=$(RAPIDJSON_INC)
 JSON_LIB=$(RAPIDJSON_LIB)
-PYTHON_BOOST_INC=-I/usr/local/include -I/usr/include/python2.7
-PYTHON_BOOST_LIB=-L/usr/lib/python2.7 -L/user/local/lib -lboost_python -lpython2.7
-REDIS_INC=-I/usr/local/include/hiredis
-REDIS_LIB=/usr/local/lib/libhiredis.a
-
-
-#TBSDK_LIBRARY_PATH=/home/lljz/lib
-#TBSDK_LIB=$(TBSDK_LIBRARY_PATH)/lib/libtbnet.a $(TBSDK_LIBRARY_PATH)/lib/libtbsys.a
-#TBSDK_INC = -I$(TBSDK_LIBRARY_PATH)/include
-#JSONCPP_INC=-I/home/lljz/projects/jsoncpp-master/include
-#JSONCPP_LIB=/home/lljz/projects/jsoncpp-master/libs/linux-gcc-4.9.2/libjson_linux-gcc-4.9.2_libmt.a
-#RAPIDJSON_INC=-I/home/lljz/my_projects/rapidjson/include
-#RAPIDJSON_LIB=
-#JSON_INC=$(RAPIDJSON_INC)
-#JSON_LIB=$(RAPIDJSON_LIB)
-#PYTHON_BOOST_INC=-I/usr/local/include -I/usr/include/python2.6
-#PYTHON_BOOST_LIB=-L/usr/lib/python2.6 -L/user/local/lib -lboost_python -lpython2.6
-#REDIS_INC=-I/home/lljz/lib/hiredis/include
-#REDIS_LIB=/home/lljz/lib/hiredis/lib/libhiredis.a
+REDIS_INC=-I$(INC_PATH)
+REDIS_LIB=$(LIB_PATH)/libhiredis.a
 
 PROJECT_INC=-I../packets -I../protocol -I../utility
 VPATH=../packets ../utility

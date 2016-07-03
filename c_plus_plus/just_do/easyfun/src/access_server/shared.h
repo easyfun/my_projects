@@ -19,6 +19,7 @@ namespace disk {
     class ManagerClient;
     class ManagerServer;
     class LoadConnection;
+    class ManagerConfig;
     
 }
 }
@@ -32,7 +33,10 @@ namespace disk {
 #include "iserver_entry.h"
 #include "manager_client.h"
 #include "manager_server.h"
+#include "manager_config.h"
 #include "load_connection.h"
+#include "redis_client.h"
+#include "redis_client_manager.h"
 
 namespace lljz {
 namespace disk {

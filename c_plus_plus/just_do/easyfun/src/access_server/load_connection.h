@@ -7,8 +7,8 @@
 namespace lljz {
 namespace disk {
 
-#define MAX_SERVER_NUM 16
-
+#define MAX_SERVER_NUM 64
+class ServerInfo;
 class LoadConnection {
 public:
     LoadConnection(uint16_t server_type,
@@ -26,6 +26,7 @@ public:
     }
 
     bool Connect();
+    bool connect2(const std::vector<ServerInfo>* back_servers);
     void DisConnect();
 
     bool postPacket(tbnet::Packet *packet, 
@@ -43,8 +44,6 @@ private:
 
     tbnet::Connection* conns_[MAX_SERVER_NUM];
     int conn_num_;
-//    int last_send_conn_index_;
-
 };
 
 }

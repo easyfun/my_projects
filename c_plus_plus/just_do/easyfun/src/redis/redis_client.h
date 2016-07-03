@@ -3,7 +3,7 @@
 
 #include "tbsys.h"
 #include "tbnet.h"
-#include "hiredis.h"
+#include "hiredis/hiredis.h"
 
 namespace lljz {
 namespace disk {
@@ -43,6 +43,8 @@ int Rhget(RedisClient* rc, const char* cmd,
             redisReply*& reply, bool free_reply=true);
 int Rhdel(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
+int Rhgetall(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
 
 //集合sets
 int Rsadd(RedisClient* rc, const char* cmd, 
@@ -50,6 +52,8 @@ int Rsadd(RedisClient* rc, const char* cmd,
 int Rspop(RedisClient* rc, const char* cmd, 
             redisReply*& reply, bool free_reply=true);
 int Rsunionstore(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply=true);
+int Rsmembers(RedisClient* rc, const char* cmd,
             redisReply*& reply, bool free_reply=true);
 
 //有序集合zsets

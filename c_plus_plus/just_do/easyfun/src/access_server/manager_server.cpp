@@ -63,6 +63,7 @@ bool ManagerServer::start() {
     packet_streamer_.setPacketFactory(&packet_factory_);
     transport_for_server_.start();
 
+/*
     //依赖后端业务服务
     std::vector<int> server_types=
         TBSYS_CONFIG.getIntList("depend_server", "server_type");
@@ -83,7 +84,7 @@ bool ManagerServer::start() {
         }
         conn_map_[server_types[i]]=lc;
     }
-
+*/
     return true;
 }
 

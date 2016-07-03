@@ -7,6 +7,8 @@ namespace disk {
 //uint16_t [1,65535]
 //server type
 enum ServerType {
+   SERVER_TYPE_NONE=0,
+
    SERVER_TYPE_CONFIG_SERVER=1,   //配置服务
    SERVER_TYPE_ACCESS_SERVER=2,   //接入服务
    SERVER_TYPE_BUSINESS_SERVER=3, //业务服务

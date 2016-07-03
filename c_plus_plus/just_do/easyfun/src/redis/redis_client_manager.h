@@ -3,7 +3,7 @@
 
 #include "tbnet.h"
 #include "tbsys.h"
-#include "hiredis.h"
+#include "hiredis/hiredis.h"
 #include "redis_client.h"
 
 namespace lljz {
@@ -35,7 +35,7 @@ private:
     bool stop_;
     tbsys::CThread timer_thread_;
 
-    char redis_host_[200];
+    char redis_host_[24];
     int redis_port_;
     int redis_index_;
 

@@ -35,7 +35,7 @@ bool LoadConnection::Connect() {
         conns_[i]=_transport->connect(server_specs[i],
             _streamer,true);
         if (NULL==conns_[i]) {
-            TBSYS_LOG(ERROR,"connect to %s fail",conns_[i]);
+            TBSYS_LOG(ERROR,"connect to %s fail",server_specs[i]);
             return false;
         }
         conns_[i]->setDefaultPacketHandler(_packetHandler);
@@ -44,6 +44,33 @@ bool LoadConnection::Connect() {
         conn_num_++;
     }
     assert(conn_num_);
+    return true;
+}
+
+bool LoadConnection::connect2(
+const std::vector<ServerInfo>* back_servers){
+    char spec[100]={0};
+    for (int i=0;i<back_servers->size();i++){
+        sprintf(spec,"tcp:%s:%d", 
+            back_servers[i].host,
+            back_servers[i].frontPort);
+        conns_[i]=_transport->connect(spec,
+            _streamer,true);
+        if (NULL==conns_[i]) {
+            TBSYS_LOG(ERROR,"connect to %s fail",
+                spec);
+            return false;
+        }
+        conns_[i]->setDefaultPacketHandler(_packetHandler);
+        conns_[i]->setQueueLimit(_queueLimit);
+        conns_[i]->setQueueTimeout(_queueTimeout);
+        conn_num_++;
+
+        if (conn_num_ > MAX_SERVER_NUM){
+            TBSYS_LOG(ERROR,"connect to server too much");
+            return false;
+        }
+    }
     return true;
 }
 

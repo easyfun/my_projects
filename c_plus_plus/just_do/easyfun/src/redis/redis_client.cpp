@@ -274,6 +274,12 @@ redisReply*& reply, bool free_reply) {
     return ret;
 }
 
+int Rhgetall(RedisClient* rc, const char* cmd, 
+            redisReply*& reply, bool free_reply/*=true*/){
+    return 0;
+}
+
+
 /**********************************************
 // set
 **********************************************/
@@ -380,6 +386,43 @@ redisReply*& reply, bool free_reply) {
 
     int ret=FAILED_ACTIVE;
     if (REDIS_REPLY_INTEGER==reply->type && reply->integer>=1) {
+        ret=SUCCESS_ACTIVE;
+    }
+
+    if (free_reply) {
+        freeReplyObject(reply);
+    }
+    TBSYS_LOG(DEBUG,"ret=%d",ret);
+    return ret;
+}
+
+int Rsmembers(RedisClient* rc, const char* cmd,
+            redisReply*& reply, bool free_reply/*=true*/){
+    if (NULL==rc) {
+        TBSYS_LOG(DEBUG,"NULL==rc");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    if (NULL==rc->redis_context_) {
+        TBSYS_LOG(DEBUG,"NULL==rc->redis_context_");
+        return FAILED_NOT_ACTIVE;
+    }
+
+    TBSYS_LOG(DEBUG,"cmd=%s", cmd);
+    if (0!=strncasecmp("SMEMBERS ",cmd,8)) {
+        TBSYS_LOG(DEBUG,"not SMEMBERS");
+        return FAILED_ACTIVE;
+    }
+
+    reply=(redisReply* )redisCommand(rc->redis_context_,cmd);
+    if (NULL==reply) {
+        TBSYS_LOG(DEBUG,"NULL==reply");
+        return FAILED_NOT_ACTIVE;
+    }
+    TBSYS_LOG(DEBUG,"type=%d,elements=%d",reply->type, reply->elements);
+
+    int ret=FAILED_ACTIVE;
+    if (REDIS_REPLY_ARRAY==reply->type && reply->elements>0) {
         ret=SUCCESS_ACTIVE;
     }
 
