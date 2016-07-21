@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>easyfun监控平台</title>
+	<script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.8.0.js"></script>
+	<script src="../js/sha1.min.js"></script>
+	<style>
+	</style>
+
+	<script type="text/javascript">
+        $(function () {
+            $("#admin_name").focus();//输入焦点
+            $("#admin_name").keydown(function (event) {
+                if (event.which == "13") {//回车键,移动光标到密码框
+                    $("#admin_password").focus();
+                }
+            });
+            $("#admin_password").keydown(function (event) {
+                if (event.which == "13") {//回车键，用.ajax提交表单
+                    $("#btn_signin").trigger("click");
+                }
+            });
+            $("#monitor_platform_signin_form").submit(function(event) {
+            //$("#btn_signin").click(function () { //“登录”按钮单击事件
+            	event.preventDefault();
+                //获取用户名称
+                var str_admin_name = $("#admin_name").val().trim();
+                if (!str_admin_name){
+                	$('#div_error_info').text('请输入管理员账号');
+                	return;
+                }
+                //获取输入密码
+                var str_admin_password = $("#admin_password").val().trim();
+                if (!str_admin_password){
+                	$("#div_error_info").text("请输入密码");
+                	return;
+                }
+                //开始发送数据
+                var admin_password=CryptoJS.SHA1(str_admin_name + ':' + str_admin_password).toString();
+               
+                $.ajax
+                ({
+                	url:"/web_access/monitor_platform_signin.do",
+                	type:"post",
+                    dataType: "json",
+                    contentType:"application/json;charset=utf-8",
+                    data: JSON.stringify({ 
+                    	name: str_admin_name, 
+                    	password: admin_password
+                    })
+                }).done(function (data) {
+                    <!--$("#div_error_info").text('成功, 收到的数据: ' + data);-->
+                    alert('成功, 收到的数据: ' + data);
+                    //location.href="https://www.baidu.com";
+                }).fail(function (xhr, status) {
+                	$("#div_error_info").text('失败: ' + xhr.status + ', 原因: ' + status);
+                })
+            })
+        })
+    </script>
+</head>
+
+<body>
+	<div id="content">
+		<p>easyfun监控平台</p>
+		<form id="monitor_platform_signin_form">
+			管理员账号: <br/>
+			<input type="text" id="admin_name" size="32"/><br />
+			<br/>密码: <br />
+			<input type="password" id="admin_password" value="" size="32"/><br />
+			<br/><input type="submit" id="btn_signin" value="登录"/>
+		</form> 
+		<div id="div_error_info"></div>
+	</div>
+</body>
+</html>
