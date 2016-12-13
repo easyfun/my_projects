@@ -1,0 +1,17 @@
+eclipse.preferences.version=1
+encoding//src/app.py=utf-8
+encoding//src/financial_money/check_frozen_moneys.py=utf-8
+encoding//src/financial_money/check_uid_account_flow.py=utf-8
+encoding//src/financial_money/check_uid_role.py=utf-8
+encoding//src/financial_money/check_uid_with_draw_flow.py=utf-8
+encoding//src/financial_money/financial_investor.py=utf-8
+encoding//src/financial_money/frozen_money_results.py=utf-8
+encoding//src/financial_money/money.py=utf-8
+encoding//src/financial_money/test_with_draw.py=utf-8
+encoding//src/invest/account_flow.py=utf-8
+encoding//src/invest/financial_asset.py=utf-8
+encoding//src/middle_financial/invest_money.py=utf-8
+encoding//src/payoff/financial_payoff.py=utf-8
+encoding//src/payoff/payoff.py=utf-8
+encoding//src/payoff/sum_payoff.py=utf-8
+encoding//src/test/test.py=utf-8
