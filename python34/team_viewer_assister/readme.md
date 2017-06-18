@@ -1,0 +1,3 @@
+遇到的问题：Windows7长时间不关机，TeamViewer会不能使用。
+
+为了解决这个问题，做了这款小工具。TeamViewer不能使用时，重启操作系统，启动TeamViewer，将TeamView含账号、密码的窗口截图发到指定邮箱。
