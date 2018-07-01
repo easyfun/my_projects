@@ -11,7 +11,9 @@ result = os.popen(cmd)
 result = result.read()
 result = result.split('\n')
 
-with open('pull.bat', 'w') as f:
+with open('git_pull_all.bat', 'w') as f:
+	cmd = 'git commit -m "fix"\n'
+	f.write(cmd)
 	for r in result:
 		r=r.strip()
 		if r.find('remotes/origin/HEAD') >= 0:
