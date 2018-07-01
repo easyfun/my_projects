@@ -3,26 +3,6 @@
 
 import os
 
-branches = ["develop",
-"changeMailValible",
-"develop",
-"feature/#IK7SH/app.api",
-"feature/assetStatistics",
-"feature/cleanRepeatAddress",
-"feature/customCenterAPI",
-"feature/incremental.push",
-"feature/mine",
-"feature/recordMemberAndAsset",
-"feature/smsAndIdentity",
-"feature/sms_access",
-"feature/split.cache.websocket",
-"features/usdt",
-"issue/air.drop.tool",
-"master",
-"trader-bot",
-"v2"]
-
-
 skip='remotes/origin/HEAD'
 remotes='remotes/origin/'
 
@@ -45,26 +25,3 @@ with open('pull.bat', 'w') as f:
 
 		cmd = 'git checkout %s && git pull\n' % branch
 		f.write(cmd)
-
-
-
-# with open('pull_all.bat', 'w') as f:
-# 	for branch in branches:
-# 		# print(branch)
-# 		# cmd = 'git checkout %s' % branch
-# 		# result = os.popen(cmd)
-# 		# print(result.read())
-
-# 		# cmd = 'git pull'
-# 		# result = os.popen(cmd)
-# 		# print(result.read())
-
-# 		cmd = 'git checkout %s && git pull\n' % branch
-# 		# f.write(cmd)
-# 		# cmd = 'git pull\n'
-# 		f.write(cmd)
-
-
-
-
-
