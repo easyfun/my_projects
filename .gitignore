@@ -6,3 +6,6 @@ python34/account_system/email_db
 python34/account_system/user_data
 python34/account_system/user_db
 *.txt
+
+*.pyc
+

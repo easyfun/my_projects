@@ -1,0 +1,58 @@
+
+server:
+  port: 65000
+
+# 指定使用的log4j2配置文件
+logging:
+  config: classpath:log4j2.xml
+  
+# 开启Actuator 配置
+endpoints:
+  shutdown:
+    enabled: true
+management:
+  security:
+    enabled: false
+
+common:
+  approvalStarKey: 1
+  approvalWaitKey: 1
+  approvalPassKey: 1
+  notAudit: 1
+  approvalWattingBankTreatmentKey: 1
+  sumbitBank: 1
+  approvalWattingIncomeAccountKey: 1
+  approvalWithdrawCashFailedKey: 1
+  financeAbnormalPresentationExportPath: 1
+  serverinfo:
+    type:
+      domain: 1
+
+druid:
+  driverClassName: net.sf.log4jdbc.DriverSpy
+  url: jdbc:log4jdbc:mysql://ip:port/example?characterEncoding=utf8&relaxAutoCommit=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&autoReconnect=true
+  username: name
+  password: password
+  filters: stat
+  initialSize: 2
+  maxActive: 10
+  minIdle: 2
+  maxWait: -1
+  timeBetweenEvictionRunsMillis: 6000
+  minEvictableIdleTimeMillis: 300000
+  validationQuery: SELECT  'x'
+  testWhileIdle: true
+  testOnBorrow: true
+  testOnReturn: false
+  poolPreparedStatements: false
+  maxPoolPreparedStatementPerConnectionSize: 200
+  fileExport:
+    url: jdbc:log4jdbc:mysql://ip:port/example?characterEncoding=utf8&relaxAutoCommit=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&autoReconnect=true
+    username: name
+    password: password
+  driver:
+    url: jdbc:log4jdbc:mysql://ip:port/example?characterEncoding=utf8&relaxAutoCommit=true&zeroDateTimeBehavior=convertToNull&allowMultiQueries=true&autoReconnect=true
+    username: name
+    password: password
+
+

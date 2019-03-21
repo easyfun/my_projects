@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanshun.fileexport.cardatamodel.dao.confservice.LocalCityReadMapper" >
+  <resultMap id="BaseResultMap" type="com.wanshun.fileexport.cardatamodel.po.confservice.LocalCityRead">
+    <id column="code" jdbcType="INTEGER" property="code" />
+    <result column="code" jdbcType="INTEGER" property="code" />
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="provinceCode" jdbcType="INTEGER" property="provinceCode" />
+    <result column="license" jdbcType="VARCHAR" property="license" />
+    <result column="fullLetter" jdbcType="VARCHAR" property="fullLetter" />
+    <result column="areaNo" jdbcType="VARCHAR" property="areaNo" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    code, name, provinceCode, license, fullLetter, areaNo
+  </sql>
+
+  <sql id="BASE_UPDATE_SQL">
+    update localcity
+    <set>
+      <if test="name != null">
+        name = #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="provinceCode != null">
+        provinceCode = #{provinceCode,jdbcType=INTEGER},
+      </if>
+      <if test="license != null">
+        license = #{license,jdbcType=VARCHAR},
+      </if>
+      <if test="fullLetter != null">
+        fullLetter = #{fullLetter,jdbcType=VARCHAR},
+      </if>
+      <if test="areaNo != null">
+        areaNo = #{areaNo,jdbcType=VARCHAR},
+      </if>
+    </set>
+  </sql>
+
+  <sql id="BASE_WHERE_CONDITION">
+    where code = #{code,jdbcType=INTEGER}
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultType="com.wanshun.fileexport.cardatamodel.po.confservice.LocalCityRead">
+    select 
+    <include refid="Base_Column_List" />
+    from localcity
+    <include refid="BASE_WHERE_CONDITION" />
+  </select>
+
+  <insert id="insertSelective" parameterType="com.wanshun.fileexport.cardatamodel.po.confservice.LocalCityRead">
+    insert into localcity
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="code != null">
+        code,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="provinceCode != null">
+        provinceCode,
+      </if>
+      <if test="license != null">
+        license,
+      </if>
+      <if test="fullLetter != null">
+        fullLetter,
+      </if>
+      <if test="areaNo != null">
+        areaNo,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="code != null">
+        #{code,jdbcType=INTEGER},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=VARCHAR},
+      </if>
+      <if test="provinceCode != null">
+        #{provinceCode,jdbcType=INTEGER},
+      </if>
+      <if test="license != null">
+        #{license,jdbcType=VARCHAR},
+      </if>
+      <if test="fullLetter != null">
+        #{fullLetter,jdbcType=VARCHAR},
+      </if>
+      <if test="areaNo != null">
+        #{areaNo,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.wanshun.fileexport.cardatamodel.po.confservice.LocalCityRead">
+    <include refid="BASE_UPDATE_SQL" />
+    <include refid="BASE_WHERE_CONDITION" />
+  </update>
+
+  <delete id="deleteByPrimaryKey" parameterType="com.wanshun.fileexport.cardatamodel.po.confservice.LocalCityRead">
+    delete from localcity
+    <include refid="BASE_WHERE_CONDITION" />
+  </delete>
+
+</mapper>

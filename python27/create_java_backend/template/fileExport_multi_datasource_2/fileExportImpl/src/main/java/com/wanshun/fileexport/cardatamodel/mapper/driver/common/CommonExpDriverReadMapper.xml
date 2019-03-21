@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanshun.fileexport.cardatamodel.dao.driver.ExpDriverReadMapper" >
+  <resultMap id="BaseResultMap" type="com.wanshun.fileexport.cardatamodel.po.driver.ExpDriverRead">
+    <id column="driverId" jdbcType="BIGINT" property="driverId" />
+    <id column="dataNodeId" jdbcType="INTEGER" property="dataNodeId" />
+    <result column="driverId" jdbcType="BIGINT" property="driverId" />
+    <result column="dataNodeId" jdbcType="INTEGER" property="dataNodeId" />
+    <result column="token" jdbcType="VARCHAR" property="token" />
+    <result column="loginPassword" jdbcType="VARCHAR" property="loginPassword" />
+    <result column="platform" jdbcType="INTEGER" property="platform" />
+    <result column="sysVersion" jdbcType="VARCHAR" property="sysVersion" />
+    <result column="softVersion" jdbcType="VARCHAR" property="softVersion" />
+    <result column="imei" jdbcType="VARCHAR" property="imei" />
+    <result column="deviceId" jdbcType="VARCHAR" property="deviceId" />
+    <result column="accountStatus" jdbcType="INTEGER" property="accountStatus" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="isRecommend" jdbcType="INTEGER" property="isRecommend" />
+    <result column="lastloginTime" jdbcType="TIMESTAMP" property="lastloginTime" />
+    <result column="ipaddress" jdbcType="VARCHAR" property="ipaddress" />
+    <result column="hostname" jdbcType="VARCHAR" property="hostname" />
+    <result column="loginSim" jdbcType="VARCHAR" property="loginSim" />
+    <result column="updateTime" jdbcType="TIMESTAMP" property="updateTime" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="dataSource" jdbcType="INTEGER" property="dataSource" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    driverId, dataNodeId, token, loginPassword, platform, sysVersion, softVersion, imei, 
+    deviceId, accountStatus, phone, isRecommend, lastloginTime, ipaddress, hostname, 
+    loginSim, updateTime, createTime, dataSource
+  </sql>
+
+  <sql id="BASE_UPDATE_SQL">
+    update expdriver
+    <set>
+      <if test="token != null">
+        token = #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="loginPassword != null">
+        loginPassword = #{loginPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="platform != null">
+        platform = #{platform,jdbcType=INTEGER},
+      </if>
+      <if test="sysVersion != null">
+        sysVersion = #{sysVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="softVersion != null">
+        softVersion = #{softVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="imei != null">
+        imei = #{imei,jdbcType=VARCHAR},
+      </if>
+      <if test="deviceId != null">
+        deviceId = #{deviceId,jdbcType=VARCHAR},
+      </if>
+      <if test="accountStatus != null">
+        accountStatus = #{accountStatus,jdbcType=INTEGER},
+      </if>
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="isRecommend != null">
+        isRecommend = #{isRecommend,jdbcType=INTEGER},
+      </if>
+      <if test="lastloginTime != null">
+        lastloginTime = #{lastloginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="ipaddress != null">
+        ipaddress = #{ipaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="hostname != null">
+        hostname = #{hostname,jdbcType=VARCHAR},
+      </if>
+      <if test="loginSim != null">
+        loginSim = #{loginSim,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        updateTime = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        createTime = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dataSource != null">
+        dataSource = #{dataSource,jdbcType=INTEGER},
+      </if>
+    </set>
+  </sql>
+
+  <sql id="BASE_WHERE_CONDITION">
+    where driverId = #{driverId,jdbcType=BIGINT}
+      and dataNodeId = #{dataNodeId,jdbcType=INTEGER}
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="map" resultType="com.wanshun.fileexport.cardatamodel.po.driver.ExpDriverRead">
+    select 
+    <include refid="Base_Column_List" />
+    from expdriver
+    <include refid="BASE_WHERE_CONDITION" />
+  </select>
+
+  <select id="selectByShardKey" parameterType="map" resultType="com.wanshun.fileexport.cardatamodel.po.driver.ExpDriverRead">
+    select 
+    <include refid="Base_Column_List" />
+    from expdriver
+    where dataNodeId = #{dataNodeId,jdbcType=INTEGER}
+  </select>
+
+  <insert id="insertSelective" parameterType="com.wanshun.fileexport.cardatamodel.po.driver.ExpDriverRead">
+    insert into expdriver
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="driverId != null">
+        driverId,
+      </if>
+      <if test="dataNodeId != null">
+        dataNodeId,
+      </if>
+      <if test="token != null">
+        token,
+      </if>
+      <if test="loginPassword != null">
+        loginPassword,
+      </if>
+      <if test="platform != null">
+        platform,
+      </if>
+      <if test="sysVersion != null">
+        sysVersion,
+      </if>
+      <if test="softVersion != null">
+        softVersion,
+      </if>
+      <if test="imei != null">
+        imei,
+      </if>
+      <if test="deviceId != null">
+        deviceId,
+      </if>
+      <if test="accountStatus != null">
+        accountStatus,
+      </if>
+      <if test="phone != null">
+        phone,
+      </if>
+      <if test="isRecommend != null">
+        isRecommend,
+      </if>
+      <if test="lastloginTime != null">
+        lastloginTime,
+      </if>
+      <if test="ipaddress != null">
+        ipaddress,
+      </if>
+      <if test="hostname != null">
+        hostname,
+      </if>
+      <if test="loginSim != null">
+        loginSim,
+      </if>
+      <if test="updateTime != null">
+        updateTime,
+      </if>
+      <if test="createTime != null">
+        createTime,
+      </if>
+      <if test="dataSource != null">
+        dataSource,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="driverId != null">
+        #{driverId,jdbcType=BIGINT},
+      </if>
+      <if test="dataNodeId != null">
+        #{dataNodeId,jdbcType=INTEGER},
+      </if>
+      <if test="token != null">
+        #{token,jdbcType=VARCHAR},
+      </if>
+      <if test="loginPassword != null">
+        #{loginPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="platform != null">
+        #{platform,jdbcType=INTEGER},
+      </if>
+      <if test="sysVersion != null">
+        #{sysVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="softVersion != null">
+        #{softVersion,jdbcType=VARCHAR},
+      </if>
+      <if test="imei != null">
+        #{imei,jdbcType=VARCHAR},
+      </if>
+      <if test="deviceId != null">
+        #{deviceId,jdbcType=VARCHAR},
+      </if>
+      <if test="accountStatus != null">
+        #{accountStatus,jdbcType=INTEGER},
+      </if>
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="isRecommend != null">
+        #{isRecommend,jdbcType=INTEGER},
+      </if>
+      <if test="lastloginTime != null">
+        #{lastloginTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="ipaddress != null">
+        #{ipaddress,jdbcType=VARCHAR},
+      </if>
+      <if test="hostname != null">
+        #{hostname,jdbcType=VARCHAR},
+      </if>
+      <if test="loginSim != null">
+        #{loginSim,jdbcType=VARCHAR},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="dataSource != null">
+        #{dataSource,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.wanshun.fileexport.cardatamodel.po.driver.ExpDriverRead">
+    <include refid="BASE_UPDATE_SQL" />
+    <include refid="BASE_WHERE_CONDITION" />
+  </update>
+
+  <delete id="deleteByPrimaryKey" parameterType="com.wanshun.fileexport.cardatamodel.po.driver.ExpDriverRead">
+    delete from expdriver
+    <include refid="BASE_WHERE_CONDITION" />
+  </delete>
+
+</mapper>

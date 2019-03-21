@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.wanshun.poolfile.cardatamodel.dao.driver.FileExportMapper" >
+  <resultMap id="BaseResultMap" type="com.wanshun.poolfile.cardatamodel.po.driver.FileExport">
+    <id column="id" jdbcType="BIGINT" property="id" />
+    <result column="id" jdbcType="BIGINT" property="id" />
+    <result column="fileType" jdbcType="VARCHAR" property="fileType" />
+    <result column="fileSecondType" jdbcType="VARCHAR" property="fileSecondType" />
+    <result column="generateType" jdbcType="INTEGER" property="generateType" />
+    <result column="fileName" jdbcType="VARCHAR" property="fileName" />
+    <result column="fileId" jdbcType="VARCHAR" property="fileId" />
+    <result column="status" jdbcType="INTEGER" property="status" />
+    <result column="downloadCount" jdbcType="INTEGER" property="downloadCount" />
+    <result column="createrId" jdbcType="BIGINT" property="createrId" />
+    <result column="createrName" jdbcType="VARCHAR" property="createrName" />
+    <result column="createTime" jdbcType="TIMESTAMP" property="createTime" />
+    <result column="updateTime" jdbcType="TIMESTAMP" property="updateTime" />
+  </resultMap>
+
+  <sql id="Base_Column_List">
+    id, fileType, fileSecondType, generateType, fileName, fileId, status, downloadCount, 
+    createrId, createrName, createTime, updateTime
+  </sql>
+
+  <sql id="BASE_UPDATE_SQL">
+    update fileexport
+    <set>
+      <if test="fileType != null">
+        fileType = #{fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSecondType != null">
+        fileSecondType = #{fileSecondType,jdbcType=VARCHAR},
+      </if>
+      <if test="generateType != null">
+        generateType = #{generateType,jdbcType=INTEGER},
+      </if>
+      <if test="fileName != null">
+        fileName = #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="fileId != null">
+        fileId = #{fileId,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="downloadCount != null">
+        downloadCount = #{downloadCount,jdbcType=INTEGER},
+      </if>
+      <if test="createrId != null">
+        createrId = #{createrId,jdbcType=BIGINT},
+      </if>
+      <if test="createrName != null">
+        createrName = #{createrName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        createTime = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        updateTime = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+  </sql>
+
+  <sql id="BASE_WHERE_CONDITION">
+    where id = #{id,jdbcType=BIGINT}
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Long" resultType="com.wanshun.poolfile.cardatamodel.po.driver.FileExport">
+    select 
+    <include refid="Base_Column_List" />
+    from fileexport
+    <include refid="BASE_WHERE_CONDITION" />
+  </select>
+
+  <insert id="insertSelective" parameterType="com.wanshun.poolfile.cardatamodel.po.driver.FileExport">
+    insert into fileexport
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="fileType != null">
+        fileType,
+      </if>
+      <if test="fileSecondType != null">
+        fileSecondType,
+      </if>
+      <if test="generateType != null">
+        generateType,
+      </if>
+      <if test="fileName != null">
+        fileName,
+      </if>
+      <if test="fileId != null">
+        fileId,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="downloadCount != null">
+        downloadCount,
+      </if>
+      <if test="createrId != null">
+        createrId,
+      </if>
+      <if test="createrName != null">
+        createrName,
+      </if>
+      <if test="createTime != null">
+        createTime,
+      </if>
+      <if test="updateTime != null">
+        updateTime,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=BIGINT},
+      </if>
+      <if test="fileType != null">
+        #{fileType,jdbcType=VARCHAR},
+      </if>
+      <if test="fileSecondType != null">
+        #{fileSecondType,jdbcType=VARCHAR},
+      </if>
+      <if test="generateType != null">
+        #{generateType,jdbcType=INTEGER},
+      </if>
+      <if test="fileName != null">
+        #{fileName,jdbcType=VARCHAR},
+      </if>
+      <if test="fileId != null">
+        #{fileId,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="downloadCount != null">
+        #{downloadCount,jdbcType=INTEGER},
+      </if>
+      <if test="createrId != null">
+        #{createrId,jdbcType=BIGINT},
+      </if>
+      <if test="createrName != null">
+        #{createrName,jdbcType=VARCHAR},
+      </if>
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null">
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.wanshun.poolfile.cardatamodel.po.driver.FileExport">
+    <include refid="BASE_UPDATE_SQL" />
+    <include refid="BASE_WHERE_CONDITION" />
+  </update>
+
+  <delete id="deleteByPrimaryKey" parameterType="com.wanshun.poolfile.cardatamodel.po.driver.FileExport">
+    delete from fileexport
+    <include refid="BASE_WHERE_CONDITION" />
+  </delete>
+
+</mapper>
